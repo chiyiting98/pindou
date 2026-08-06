@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>拼豆 · 批量勾选 · 自由色号管理</title>
+    <title>拼豆 · 真实色卡 · 含透色系</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
+        /* ===== 基础样式（与之前完全一致） ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -269,6 +270,20 @@
         }
         .stats .low-stock-badge:hover { background: #fde68a; }
         .stats .low-stock-badge.warning { background: #fee2e2; color: #dc2626; }
+        .stats .threshold-setting {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 2px 10px;
+            border-radius: 30px;
+            background: #e9edf2;
+            transition: 0.2s;
+        }
+        .stats .threshold-setting:hover { background: #d1d9e6; }
+
         .search-box {
             display: flex;
             align-items: center;
@@ -348,6 +363,18 @@
             text-align: center;
             font-size: 15px;
             vertical-align: middle;
+            cursor: pointer;
+            user-select: none;
+        }
+        th .sort-icon {
+            display: inline-block;
+            margin-left: 4px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        th .sort-icon.active {
+            opacity: 1;
+            color: #3b82f6;
         }
         td {
             padding: 8px 4px;
@@ -366,6 +393,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            cursor: pointer;
         }
         .color-dot {
             display: inline-block;
@@ -409,7 +437,6 @@
         .low-stock td:first-child { border-left: 4px solid #f59e0b; }
         .highlight-row td { background-color: #fef9c3 !important; }
 
-        /* 复选框样式 */
         input[type="checkbox"] {
             width: 20px;
             height: 20px;
@@ -432,54 +459,53 @@
             padding: 0 2px;
         }
 
-        @media (max-width: 640px) {
-            .container { padding: 10px 8px; }
-            h1 { font-size: 18px; }
-            h1 small { font-size: 12px; }
-            .toolbar { flex-direction: column; align-items: stretch; }
-            .stats { justify-content: center; }
-            .search-box { width: 100%; }
-            .btn-group { justify-content: center; }
-            .ocr-header { padding: 10px 12px; }
-            .ocr-header .status { font-size: 13px; }
-            .ocr-body { padding: 0 12px 12px; }
-            .ocr-body textarea { height: 80px; font-size: 14px; }
-            .ocr-body .parsed-list td { padding: 6px 2px; }
-            .ocr-body .parsed-list input { width: 60px; font-size: 14px; padding: 6px 2px; }
-            .ocr-body .parsed-list input.code-input { width: 50px; }
-            .btn { font-size: 14px; padding: 8px 14px; min-height: 40px; }
-            .batch-panel select, .batch-panel input { font-size: 14px; min-height: 40px; }
-            .col-check { width: 10%; }
-            .col-id { width: 10%; }
-            .col-code { width: 28%; }
-            .col-qty { width: 32%; }
-            .col-delete { width: 20%; }
-            .col-qty input { font-size: 15px; padding: 8px 2px; min-height: 40px; }
-            .code-text { font-size: 14px; }
-            .color-dot { width: 20px; height: 20px; }
-            .stats span { font-size: 13px; padding: 2px 8px; }
-            .stats .low-stock-badge { font-size: 13px; padding: 2px 8px; }
-            .footer-note { font-size: 12px; }
-            .ocr-body .upload-area .hint { font-size: 12px; }
-            .parsed-code-cell .color-dot { width: 16px; height: 16px; }
-            .btn-delete-row { font-size: 18px; min-height: 36px; min-width: 36px; }
-            input[type="checkbox"] { width: 18px; height: 18px; }
+        /* ===== 颜色选择模态框 ===== */
+        .color-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
         }
-        @media (max-width: 400px) {
-            .col-check { width: 12%; }
-            .col-id { width: 12%; }
-            .col-code { width: 24%; }
-            .col-qty { width: 30%; }
-            .col-delete { width: 22%; }
-            .col-qty input { width: 90%; }
-            .ocr-body .parsed-list input { width: 50px; }
-            .ocr-body .parsed-list input.code-input { width: 40px; }
+        .color-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
         }
-        .table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
-        .table-wrap::-webkit-scrollbar-track { background: #f1f5f9; }
-        .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .table-wrap::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        #restoreFileInput { display: none; }
+        .color-modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px 28px;
+            max-width: 360px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .color-modal-box h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: #1e293b;
+        }
+        .color-modal-box input[type="color"] {
+            width: 100%;
+            height: 100px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 10px 0;
+        }
+        .color-modal-box .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -529,13 +555,63 @@
             justify-content: flex-end;
             margin-top: 20px;
         }
+
+        @media (max-width: 640px) {
+            .container { padding: 10px 8px; }
+            h1 { font-size: 18px; }
+            h1 small { font-size: 12px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .stats { justify-content: center; }
+            .search-box { width: 100%; }
+            .btn-group { justify-content: center; }
+            .ocr-header { padding: 10px 12px; }
+            .ocr-header .status { font-size: 13px; }
+            .ocr-body { padding: 0 12px 12px; }
+            .ocr-body textarea { height: 80px; font-size: 14px; }
+            .ocr-body .parsed-list td { padding: 6px 2px; }
+            .ocr-body .parsed-list input { width: 60px; font-size: 14px; padding: 6px 2px; }
+            .ocr-body .parsed-list input.code-input { width: 50px; }
+            .btn { font-size: 14px; padding: 8px 14px; min-height: 40px; }
+            .batch-panel select, .batch-panel input { font-size: 14px; min-height: 40px; }
+            .col-check { width: 10%; }
+            .col-id { width: 10%; }
+            .col-code { width: 28%; }
+            .col-qty { width: 32%; }
+            .col-delete { width: 20%; }
+            .col-qty input { font-size: 15px; padding: 8px 2px; min-height: 40px; }
+            .code-text { font-size: 14px; }
+            .color-dot { width: 20px; height: 20px; }
+            .stats span { font-size: 13px; padding: 2px 8px; }
+            .stats .low-stock-badge { font-size: 13px; padding: 2px 8px; }
+            .stats .threshold-setting { font-size: 12px; padding: 2px 8px; }
+            .footer-note { font-size: 12px; }
+            .ocr-body .upload-area .hint { font-size: 12px; }
+            .parsed-code-cell .color-dot { width: 16px; height: 16px; }
+            .btn-delete-row { font-size: 18px; min-height: 36px; min-width: 36px; }
+            input[type="checkbox"] { width: 18px; height: 18px; }
+        }
+        @media (max-width: 400px) {
+            .col-check { width: 12%; }
+            .col-id { width: 12%; }
+            .col-code { width: 24%; }
+            .col-qty { width: 30%; }
+            .col-delete { width: 22%; }
+            .col-qty input { width: 90%; }
+            .ocr-body .parsed-list input { width: 50px; }
+            .ocr-body .parsed-list input.code-input { width: 40px; }
+        }
+        .table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
+        .table-wrap::-webkit-scrollbar-track { background: #f1f5f9; }
+        .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .table-wrap::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        #restoreFileInput { display: none; }
     </style>
 </head>
 <body>
 <div class="container" id="appContainer">
     <h1>
-        🧩 拼豆 · 批量勾选
-        <small>勾选色号 · 自由管理</small>
+        🧩 拼豆 · 含透色系
+        <small>点击色块选色 · 排序</small>
     </h1>
 
     <!-- 添加色号弹窗 -->
@@ -551,6 +627,31 @@
             <div class="modal-actions">
                 <button class="btn btn-outline" onclick="closeAddModal()">取消</button>
                 <button class="btn btn-primary" onclick="confirmAddColor()">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置预警阈值弹窗 -->
+    <div class="modal-overlay" id="thresholdModal">
+        <div class="modal-box">
+            <h3>⚙️ 设置库存预警阈值</h3>
+            <label>当数量低于此值时触发预警（橙色高亮）</label>
+            <input type="number" id="thresholdInput" value="100" min="0" step="1">
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeThresholdModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmThreshold()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 颜色选择模态框 -->
+    <div class="color-modal-overlay" id="colorModal">
+        <div class="color-modal-box">
+            <h4 id="colorModalTitle">🎨 选择颜色</h4>
+            <input type="color" id="colorPickerInput" value="#cccccc">
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeColorModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmColorChange()">确认</button>
             </div>
         </div>
     </div>
@@ -591,7 +692,7 @@
         </div>
     </div>
 
-    <!-- 批量修改面板（增加“已选色号”选项） -->
+    <!-- 批量修改面板 -->
     <div class="batch-panel" id="batchPanel">
         <label>范围：</label>
         <select id="batchScope">
@@ -614,10 +715,11 @@
     <div class="toolbar">
         <div class="stats">
             <span>📦 <span id="total-count">0</span></span>
-            <span>📋 <span id="filled-rows">0</span>/<span id="total-colors">221</span></span>
+            <span>📋 <span id="filled-rows">0</span>/<span id="total-colors">228</span></span>
             <span class="low-stock-badge" id="lowStockBadge" onclick="toggleLowStockFilter()">
-                ⚠️ &lt;100：<span id="low-stock-count">0</span>种
+                ⚠️ &lt;<span id="threshold-display">100</span>：<span id="low-stock-count">0</span>种
             </span>
+            <span class="threshold-setting" onclick="openThresholdModal()">⚙️ 设置阈值</span>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%;">
             <div class="search-box">
@@ -636,7 +738,7 @@
         </div>
     </div>
 
-    <!-- 主表格（增加复选框列） -->
+    <!-- 主表格 -->
     <div class="table-wrap" id="tableWrapper">
         <table>
             <thead>
@@ -646,7 +748,9 @@
                     </th>
                     <th class="col-id">#</th>
                     <th class="col-code">色号</th>
-                    <th class="col-qty">数量</th>
+                    <th class="col-qty" onclick="toggleSort()">
+                        数量 <span class="sort-icon" id="sortIcon">↕</span>
+                    </th>
                     <th class="col-delete">操作</th>
                 </tr>
             </thead>
@@ -655,77 +759,147 @@
     </div>
 
     <div class="footer-note">
-        <span>💡 勾选色号后，批量修改选“已选色号” · 橙色 = 库存 &lt; 100</span>
+        <span>💡 点击色块或色号选色 · 点击“数量”排序 · 橙色 = 低于阈值</span>
         <span><kbd>Ctrl+F</kbd> 搜索</span>
     </div>
 </div>
 
 <script>
 // ================================================================
-// 1. 默认预设色号（MARD 221）
+// 1. ★★★ 更新后的默认色号（原221色 + 新增7色） ★★★
 // ================================================================
 const DEFAULT_SERIES = { A:26, B:32, C:29, D:26, E:24, F:25, G:21, H:23, M:15 };
+const EXTRA_CODES = ['P3','P8','P10','R3','R7','R11','T1']; // 新增透色系
 const DEFAULT_CODES = [];
 for (const [series, count] of Object.entries(DEFAULT_SERIES)) {
     for (let i = 1; i <= count; i++) DEFAULT_CODES.push(series + i);
 }
+// 追加新色号
+DEFAULT_CODES.push(...EXTRA_CODES);
 
 // ================================================================
-// 2. 色卡 RGB (近似)
+// 2. ★★★ 更新后的颜色映射（含透色系） ★★★
 // ================================================================
-const colorMap = {
-    'A1':'#FFFFFF','A2':'#F5F0E1','A3':'#FADADD','A4':'#F8C8D4','A5':'#F5A0B0',
-    'A6':'#E34A4A','A7':'#D42A2A','A8':'#B81A1A','A9':'#F7B8A0','A10':'#F58A3A',
-    'A11':'#E07020','A12':'#D4A030','A13':'#FDEA6A','A14':'#FCE04A','A15':'#F7D42A',
-    'A16':'#F0C800','A17':'#C8D84A','A18':'#90D040','A19':'#50B830','A20':'#2A8A1A',
-    'A21':'#1A7A2A','A22':'#48B8A0','A23':'#B0E0E8','A24':'#70C8E0','A25':'#3A8AC8',
-    'A26':'#1A5A9A',
-    'B1':'#2A4A7A','B2':'#4A3A7A','B3':'#7A4A9A','B4':'#A86ACA','B5':'#C88AD8',
-    'B6':'#E0A8E8','B7':'#F0C8F0','B8':'#F8E0F8','B9':'#F5E8F0','B10':'#F0D8D0',
-    'B11':'#E8C0B0','B12':'#D8A890','B13':'#C89078','B14':'#B87860','B15':'#A86850',
-    'B16':'#985840','B17':'#886040','B18':'#786848','B19':'#685840','B20':'#584838',
-    'B21':'#483830','B22':'#382820','B23':'#282018','B24':'#1A1410','B25':'#E8E0D8',
-    'B26':'#D0C8C0','B27':'#B8B0A8','B28':'#A09890','B29':'#888078','B30':'#706860',
-    'B31':'#585048','B32':'#403830',
-    'C1':'#E8F0E0','C2':'#D0E8C8','C3':'#B0D8A0','C4':'#90C878','C5':'#70B850',
-    'C6':'#50A030','C7':'#388820','C8':'#287018','C9':'#185810','C10':'#68A8A8',
-    'C11':'#58A0A0','C12':'#489090','C13':'#388080','C14':'#287070','C15':'#186060',
-    'C16':'#085050','C17':'#E0E8F0','C18':'#C8D8E8','C19':'#B0C8D8','C20':'#98B8C8',
-    'C21':'#80A8B8','C22':'#6898A8','C23':'#508898','C24':'#407888','C25':'#306878',
-    'C26':'#205868','C27':'#104858','C28':'#003848','C29':'#002838',
-    'D1':'#F8E8E0','D2':'#F0D8C8','D3':'#E8C8B0','D4':'#E0B898','D5':'#D8A880',
-    'D6':'#D09868','D7':'#C88850','D8':'#B87840','D9':'#A86830','D10':'#985820',
-    'D11':'#885018','D12':'#784010','D13':'#683008','D14':'#582000','D15':'#E8D8C8',
-    'D16':'#D8C8B0','D17':'#C8B8A0','D18':'#B8A890','D19':'#A89880','D20':'#988870',
-    'D21':'#887860','D22':'#786850','D23':'#685840','D24':'#584830','D25':'#483820',
-    'D26':'#382810',
-    'E1':'#F8F0E8','E2':'#F0E8D8','E3':'#E8E0C8','E4':'#E0D8B8','E5':'#D8D0A8',
-    'E6':'#D0C898','E7':'#C8C088','E8':'#C0B878','E9':'#B8B068','E10':'#B0A858',
-    'E11':'#A8A048','E12':'#A09838','E13':'#989028','E14':'#908818','E15':'#F0E8E0',
-    'E16':'#E8D8D0','E17':'#E0C8C0','E18':'#D8B8B0','E19':'#D0A8A0','E20':'#C89890',
-    'E21':'#C08880','E22':'#B87870','E23':'#B06860','E24':'#A85850',
-    'F1':'#F8F0F0','F2':'#F0E8E8','F3':'#E8E0E0','F4':'#E0D8D8','F5':'#D8D0D0',
-    'F6':'#D0C8C8','F7':'#C8C0C0','F8':'#C0B8B8','F9':'#B8B0B0','F10':'#B0A8A8',
-    'F11':'#A8A0A0','F12':'#A09898','F13':'#989090','F14':'#908888','F15':'#F8E8E8',
-    'F16':'#F0D8D8','F17':'#E8C8C8','F18':'#E0B8B8','F19':'#D8A8A8','F20':'#D09898',
-    'F21':'#C88888','F22':'#C07878','F23':'#B86868','F24':'#B05858','F25':'#A84848',
-    'G1':'#F0F0E8','G2':'#E8E8D8','G3':'#E0E0C8','G4':'#D8D8B8','G5':'#D0D0A8',
-    'G6':'#C8C898','G7':'#C0C088','G8':'#B8B878','G9':'#B0B068','G10':'#A8A858',
-    'G11':'#A0A048','G12':'#989838','G13':'#909028','G14':'#888818','G15':'#E8E0D0',
-    'G16':'#D8D0B8','G17':'#C8C0A0','G18':'#B8B088','G19':'#A8A070','G20':'#989058',
-    'G21':'#888040',
-    'H1':'#E8F0F0','H2':'#D0E8E8','H3':'#B8D8D8','H4':'#A0C8C8','H5':'#88B8B8',
-    'H6':'#70A8A8','H7':'#589898','H8':'#408888','H9':'#287878','H10':'#106868',
-    'H11':'#005858','H12':'#004848','H13':'#003838','H14':'#002828','H15':'#E8E8F0',
-    'H16':'#D0D0E8','H17':'#B8B8D8','H18':'#A0A0C8','H19':'#8888B8','H20':'#7070A8',
-    'H21':'#585898','H22':'#404088','H23':'#282878',
-    'M1':'#F8F8F0','M2':'#F0F0E0','M3':'#E8E8D0','M4':'#E0E0C0','M5':'#D8D8B0',
-    'M6':'#D0D0A0','M7':'#C8C890','M8':'#C0C080','M9':'#B8B870','M10':'#B0B060',
-    'M11':'#A8A850','M12':'#A0A040','M13':'#989830','M14':'#909020','M15':'#888810'
+const DEFAULT_COLOR_MAP = {
+    // A组 黄橙系
+    'A1':'#F5E6CA','A2':'#FFFACD','A3':'#FFFFE0','A4':'#FFF44F','A5':'#FFD700',
+    'A6':'#FFC68A','A7':'#FFA500','A8':'#FFD27A','A9':'#FFC4A3','A10':'#E8783A',
+    'A11':'#F5C89A','A12':'#D4A050','A13':'#FF8C00','A14':'#FF4500','A15':'#F5DEB3',
+    'A16':'#D2B48C','A17':'#C3A06A','A18':'#CD853F','A19':'#A0522D','A20':'#8B7355',
+    'A21':'#C4B09A','A22':'#9C8A70','A23':'#B87A4A','A24':'#C4B49A','A25':'#A67B5B','A26':'#6B4F3A',
+    // B组 绿色系
+    'B1':'#D0E84A','B2':'#7CCD7C','B3':'#66CD00','B4':'#00C957','B5':'#00FF7F',
+    'B6':'#3CB371','B7':'#2E8B57','B8':'#228B22','B9':'#006400','B10':'#556B2F',
+    'B11':'#9ACD32','B12':'#98FB98','B13':'#AFEEEE','B14':'#00CED1','B15':'#6B8E23',
+    'B16':'#8FBC8F','B17':'#C0D890','B18':'#BDB76B','B19':'#6B6B3A','B20':'#4A5D23',
+    'B21':'#B0E0E6','B22':'#E0FFFF','B23':'#C4C88A','B24':'#E0F0E0','B25':'#C0D0C0',
+    'B26':'#8FBC8F','B27':'#7A9A7A','B28':'#6A8C6A','B29':'#4A6A4A','B30':'#3A5A3A','B31':'#2A4A2A','B32':'#1A3A1A',
+    // C组 蓝色系
+    'C1':'#87CEEB','C2':'#00BFFF','C3':'#00B2EE','C4':'#1E90FF','C5':'#4169E1',
+    'C6':'#0000CD','C7':'#00008B','C8':'#191970','C9':'#0A0A3A','C10':'#4A6A9A',
+    'C11':'#B0C4DE','C12':'#F0F8FF','C13':'#C0D8E8','C14':'#D0E4F0','C15':'#8AB8D8',
+    'C16':'#6A8CB0','C17':'#4A6A8A','C18':'#3A5A7A','C19':'#6A7A8A','C20':'#7A8A9A',
+    'C21':'#A0B8C8','C22':'#C0D8E0','C23':'#5A7A8A','C24':'#4A6A7A','C25':'#B0C8D0',
+    'C26':'#3A5A6A','C27':'#2A4A5A','C28':'#1A3A4A','C29':'#0A2A3A',
+    // D组 紫色&蓝紫系
+    'D1':'#C8A2C8','D2':'#D8B4D8','D3':'#9370DB','D4':'#8A2BE2','D5':'#9B30FF',
+    'D6':'#7A2D8A','D7':'#4A0A5A','D8':'#2A0A3A','D9':'#4A1A2A','D10':'#6A4A7A',
+    'D11':'#C0B0C0','D12':'#D0C0D0','D13':'#A8A0B0','D14':'#B09AB0','D15':'#8A7A8A',
+    'D16':'#6A5A6A','D17':'#5A4A5A','D18':'#E0C8D0','D19':'#D0B8C0','D20':'#A08890',
+    'D21':'#908080','D22':'#C8B8C0','D23':'#B0A8B0','D24':'#A098A0','D25':'#8A7A90','D26':'#C0B0C8',
+    // E组 粉色玫红系
+    'E1':'#FFDAB9','E2':'#FFB6C1','E3':'#FF69B4','E4':'#FF1493','E5':'#DB7093',
+    'E6':'#C71585','E7':'#8B0A50','E8':'#FFE4E1','E9':'#FFA0B0','E10':'#C06080',
+    'E11':'#F5D0C0','E12':'#F0C0C0','E13':'#8B3A4A','E14':'#FFC8B0','E15':'#D8A0A0',
+    'E16':'#E8C8B0','E17':'#D8B8A0','E18':'#D0A0B0','E19':'#B08080','E20':'#A07880',
+    'E21':'#8A6A6A','E22':'#7A5A5A','E23':'#6A4A5A','E24':'#C8A0B0',
+    // F组 红色系
+    'F1':'#FF6347','F2':'#FF2400','F3':'#FF0000','F4':'#B22222','F5':'#8B0000',
+    'F6':'#6A0A0A','F7':'#4A1010','F8':'#8B4513','F9':'#A05030','F10':'#5A2A1A',
+    'F11':'#FF7F50','F12':'#FFB08A','F13':'#FF6A6A','F14':'#E08060','F15':'#F0A0A0',
+    'F16':'#D08080','F17':'#B06040','F18':'#A06040','F19':'#7A3030','F20':'#5A2020',
+    'F21':'#4A3030','F22':'#6A4A40','F23':'#4A2A2A','F24':'#3A1A1A','F25':'#2A0A0A',
+    // G组 肤色&棕色系
+    'G1':'#FDE8D0','G2':'#F5D0B0','G3':'#E8C8A0','G4':'#D8B080','G5':'#C89870',
+    'G6':'#B87850','G7':'#A06840','G8':'#805030','G9':'#503020','G10':'#F0D0B0',
+    'G11':'#E0C0A0','G12':'#D0B090','G13':'#B09070','G14':'#A08060','G15':'#806050',
+    'G16':'#C0A080','G17':'#B09870','G18':'#A08860','G19':'#807060','G20':'#605040','G21':'#403020',
+    // H组 透明、白、黑、灰色系
+    'H1':'#F0F0F0','H2':'#FFFFFF','H3':'#D0D0D0','H4':'#A0A0A0','H5':'#808080',
+    'H6':'#505050','H7':'#000000','H8':'#C8C8D0','H9':'#A0A0B0','H10':'#707080',
+    'H11':'#D8D0C8','H12':'#C0B8B0','H13':'#A09890','H14':'#C0C8D8','H15':'#A0A8B8',
+    'H16':'#808898','H17':'#C8C0D0','H18':'#B0A8C0','H19':'#9088A0','H20':'#A0B0A0',
+    'H21':'#C8C0A0','H22':'#D0C0C0','H23':'#C0B0A0',
+    // M组 莫兰迪灰调
+    'M1':'#C8C0B0','M2':'#C8C0A0','M3':'#C8B8A0','M4':'#C8A8A0','M5':'#D0B8B0',
+    'M6':'#C8B0C0','M7':'#B0B8C8','M8':'#D0A8A8','M9':'#B8A090','M10':'#D0B8B8',
+    'M11':'#D0C0C8','M12':'#A098A8','M13':'#B8A898','M14':'#A89088','M15':'#A8A8A8',
+    // ★★★ 新增透色系 ★★★
+    'P3':'#80FF80',   // 透绿色
+    'P8':'#FFFF80',   // 透黄色
+    'P10':'#D080FF',  // 透紫色
+    'R3':'#FF8080',   // 透红色
+    'R7':'#8080FF',   // 透蓝色
+    'R11':'#FF80C0',  // 透粉色
+    'T1':'#F0F0F0'    // 透白色
 };
 
 // ================================================================
-// 3. 动态色号列表管理
+// 3. 自定义颜色管理
+// ================================================================
+const CUSTOM_COLOR_KEY = 'perler_custom_colors';
+
+function loadCustomColors() {
+    try {
+        const raw = localStorage.getItem(CUSTOM_COLOR_KEY);
+        if (raw) {
+            const obj = JSON.parse(raw);
+            if (obj && typeof obj === 'object') return obj;
+        }
+    } catch(e) {}
+    return {};
+}
+
+function saveCustomColors(custom) {
+    localStorage.setItem(CUSTOM_COLOR_KEY, JSON.stringify(custom));
+}
+
+let customColors = loadCustomColors();
+
+function getColorForCode(code) {
+    return customColors[code] || DEFAULT_COLOR_MAP[code] || '#CCCCCC';
+}
+
+// ================================================================
+// 4. 颜色选择器（模态框）
+// ================================================================
+let pendingColorCode = null;
+
+function openColorPicker(code) {
+    pendingColorCode = code;
+    const currentColor = getColorForCode(code);
+    document.getElementById('colorPickerInput').value = currentColor;
+    document.getElementById('colorModalTitle').textContent = `🎨 修改 ${code} 颜色`;
+    document.getElementById('colorModal').classList.add('active');
+}
+
+function closeColorModal() {
+    document.getElementById('colorModal').classList.remove('active');
+    pendingColorCode = null;
+}
+
+function confirmColorChange() {
+    if (!pendingColorCode) return;
+    const picker = document.getElementById('colorPickerInput');
+    const newColor = picker.value;
+    customColors[pendingColorCode] = newColor;
+    saveCustomColors(customColors);
+    render();
+    closeColorModal();
+}
+
+// ================================================================
+// 5. 动态色号列表管理
 // ================================================================
 const LIST_KEY = 'perler_color_list';
 
@@ -747,7 +921,7 @@ function saveColorList(list) {
 let colorCodes = loadColorList();
 
 // ================================================================
-// 4. 库存数据管理
+// 6. 库存数据管理
 // ================================================================
 const STORAGE_KEY = 'perler_221_inventory_v2';
 
@@ -797,7 +971,41 @@ function updateColorList(newList) {
 }
 
 // ================================================================
-// 5. 色号增删操作
+// 7. 预警阈值管理
+// ================================================================
+const THRESHOLD_KEY = 'perler_threshold';
+
+function loadThreshold() {
+    try {
+        const val = localStorage.getItem(THRESHOLD_KEY);
+        if (val !== null) {
+            const num = parseInt(val);
+            if (!isNaN(num) && num >= 0) return num;
+        }
+    } catch(e) {}
+    return 100;
+}
+
+function saveThreshold(val) {
+    localStorage.setItem(THRESHOLD_KEY, String(val));
+}
+
+let lowThreshold = loadThreshold();
+
+// ================================================================
+// 8. 排序状态
+// ================================================================
+let sortOrder = 'none';
+
+function toggleSort() {
+    if (sortOrder === 'none') sortOrder = 'asc';
+    else if (sortOrder === 'asc') sortOrder = 'desc';
+    else sortOrder = 'none';
+    render();
+}
+
+// ================================================================
+// 9. 色号增删操作
 // ================================================================
 function openAddModal() {
     document.getElementById('addColorModal').classList.add('active');
@@ -857,7 +1065,7 @@ function deleteColor(code) {
 }
 
 // ================================================================
-// 6. 渲染表格（增加复选框）
+// 10. 渲染表格
 // ================================================================
 const tbody = document.getElementById('tableBody');
 let currentFilter = '';
@@ -866,18 +1074,41 @@ let lowStockMode = false;
 
 function render() {
     const filter = lowStockMode ? '__LOWSTOCK__' : currentFilter.toLowerCase().trim();
-    let html = '', filledCount = 0, lowStockCount = 0, filteredCodes = [];
-    for (let i = 0; i < colorCodes.length; i++) {
-        const code = colorCodes[i];
+    let displayCodes = [];
+    for (const code of colorCodes) {
         const row = inventory[code] || { qty: '' };
         const qty = row.qty ?? '';
-        const hex = colorMap[code] || '#CCCCCC';
         const numQty = parseFloat(qty);
         const hasQty = qty !== '' && !isNaN(numQty);
-        const isLowStock = hasQty && numQty < 100;
-        if (!lowStockMode && filter && !code.toLowerCase().includes(filter)) continue;
+        const isLowStock = hasQty && numQty < lowThreshold;
         if (lowStockMode && !isLowStock) continue;
-        filteredCodes.push(code);
+        if (!lowStockMode && filter && !code.toLowerCase().includes(filter)) continue;
+        displayCodes.push(code);
+    }
+
+    if (sortOrder !== 'none') {
+        displayCodes.sort((a, b) => {
+            const qtyA = parseFloat(inventory[a]?.qty) || 0;
+            const qtyB = parseFloat(inventory[b]?.qty) || 0;
+            return sortOrder === 'asc' ? qtyA - qtyB : qtyB - qtyA;
+        });
+    }
+
+    const icon = document.getElementById('sortIcon');
+    if (sortOrder === 'none') icon.textContent = '↕';
+    else if (sortOrder === 'asc') icon.textContent = '↑';
+    else icon.textContent = '↓';
+    icon.className = 'sort-icon' + (sortOrder !== 'none' ? ' active' : '');
+
+    let html = '', filledCount = 0, lowStockCount = 0, filteredCodes = [];
+    for (let i = 0; i < displayCodes.length; i++) {
+        const code = displayCodes[i];
+        const row = inventory[code] || { qty: '' };
+        const qty = row.qty ?? '';
+        const hex = getColorForCode(code);
+        const numQty = parseFloat(qty);
+        const hasQty = qty !== '' && !isNaN(numQty);
+        const isLowStock = hasQty && numQty < lowThreshold;
         if (hasQty && numQty > 0) filledCount++;
         if (isLowStock) lowStockCount++;
         const lowClass = isLowStock ? 'low-stock' : '';
@@ -888,7 +1119,7 @@ function render() {
             </td>
             <td class="col-id">${i+1}</td>
             <td class="col-code">
-                <div class="code-cell">
+                <div class="code-cell" onclick="openColorPicker('${code}')">
                     <span class="color-dot" style="background:${hex};"></span>
                     <span class="code-text">${code}</span>
                 </div>
@@ -909,23 +1140,21 @@ function render() {
     document.getElementById('filled-rows').textContent = filledCount;
     document.getElementById('total-colors').textContent = colorCodes.length;
     document.getElementById('low-stock-count').textContent = lowStockCount;
+    document.getElementById('threshold-display').textContent = lowThreshold;
     const badge = document.getElementById('lowStockBadge');
     if (lowStockCount > 0) badge.classList.add('warning'); else badge.classList.remove('warning');
     let totalQty = 0;
     for (const c of colorCodes) { const r = inventory[c]; if (r && r.qty) { const v = parseFloat(r.qty); if (!isNaN(v) && v>0) totalQty += v; } }
     document.getElementById('total-count').textContent = totalQty;
-    window._filteredCodes = filteredCodes;
-    // 更新全选状态
+    window._filteredCodes = displayCodes;
     updateSelectAllState();
 }
 
-// 全选/取消全选
 function toggleAllCheckboxes(checked) {
     const checkboxes = document.querySelectorAll('.row-checkbox');
     checkboxes.forEach(cb => cb.checked = checked);
 }
 
-// 更新全选复选框状态（当手动勾选/取消时）
 function updateSelectAllState() {
     const checkboxes = document.querySelectorAll('.row-checkbox');
     const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
@@ -933,7 +1162,6 @@ function updateSelectAllState() {
     if (selectAll) selectAll.checked = allChecked;
 }
 
-// 获取所有勾选的色号
 function getSelectedCodes() {
     const checkboxes = document.querySelectorAll('.row-checkbox:checked');
     return Array.from(checkboxes).map(cb => cb.dataset.code);
@@ -970,7 +1198,35 @@ function toggleLowStockFilter() {
 }
 
 // ================================================================
-// 7. 批量修改（适配“已选色号”）
+// 11. 阈值设置弹窗
+// ================================================================
+function openThresholdModal() {
+    document.getElementById('thresholdModal').classList.add('active');
+    document.getElementById('thresholdInput').value = lowThreshold;
+    document.getElementById('thresholdInput').focus();
+    document.getElementById('thresholdInput').select();
+}
+
+function closeThresholdModal() {
+    document.getElementById('thresholdModal').classList.remove('active');
+}
+
+function confirmThreshold() {
+    const input = document.getElementById('thresholdInput');
+    const val = parseInt(input.value);
+    if (isNaN(val) || val < 0) {
+        alert('请输入有效的正整数（≥0）');
+        return;
+    }
+    lowThreshold = val;
+    saveThreshold(val);
+    closeThresholdModal();
+    render();
+    alert(`预警阈值已设置为 ${val}，低于此值的颜色将高亮显示。`);
+}
+
+// ================================================================
+// 12. 批量修改
 // ================================================================
 function toggleBatchPanel(show) {
     const panel = document.getElementById('batchPanel');
@@ -1047,14 +1303,16 @@ function exportCSV() {
 }
 
 // ================================================================
-// 8. 备份与恢复
+// 13. 备份与恢复
 // ================================================================
 function backupData() {
     const backup = {
-        version: '2.0',
+        version: '2.1',
         timestamp: new Date().toISOString(),
         colorList: colorCodes,
         inventory: inventory,
+        threshold: lowThreshold,
+        customColors: customColors,
     };
     const json = JSON.stringify(backup, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
@@ -1084,6 +1342,14 @@ function restoreData(event) {
             }
             inventory = backup.inventory;
             saveInventory(inventory);
+            if (backup.threshold !== undefined) {
+                lowThreshold = backup.threshold;
+                saveThreshold(lowThreshold);
+            }
+            if (backup.customColors && typeof backup.customColors === 'object') {
+                customColors = backup.customColors;
+                saveCustomColors(customColors);
+            }
             render();
             alert('数据恢复成功！');
         } catch(e) {
@@ -1095,7 +1361,7 @@ function restoreData(event) {
 }
 
 // ================================================================
-// 9. OCR 识别与解析（同前）
+// 14. OCR 识别与解析（略，与之前相同）
 // ================================================================
 let parsedItems = [];
 let ocrOpen = true;
@@ -1231,7 +1497,7 @@ function showParsedList() {
     let html = '';
     parsedItems.forEach((item, idx) => {
         const code = item.code;
-        const hex = colorMap[code] || '#CCCCCC';
+        const hex = getColorForCode(code);
         html += `<tr>
             <td class="row-index">${idx+1}</td>
             <td>
@@ -1356,7 +1622,7 @@ function applyOcrBatch(mode) {
 }
 
 // ================================================================
-// 10. 文本解析
+// 15. 文本解析
 // ================================================================
 function parseTextToParsed() {
     const textDom = document.getElementById('ocrText');
@@ -1409,12 +1675,12 @@ function parseTextToParsed() {
 }
 
 // ================================================================
-// 11. 初始化
+// 16. 初始化
 // ================================================================
 render();
 if (!localStorage.getItem(STORAGE_KEY)) saveInventory(inventory);
 if (!localStorage.getItem(LIST_KEY)) saveColorList(colorCodes);
-console.log('🧩 拼豆 批量勾选版已加载！');
+console.log('🧩 拼豆 含透色系版已加载！');
 ocrOpen = true;
 document.getElementById('ocrStatus').textContent = '📂 已展开';
 document.getElementById('ocrToggleBtn').textContent = '收起';
