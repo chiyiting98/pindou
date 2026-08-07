@@ -979,6 +979,10 @@
                     <button class="btn btn-outline" onclick="clearCrop()">取消框选</button>
 					<button class="btn btn-purple" onclick="openMattingModal()">✂️ 抠图</button>
                     <button class="btn btn-primary" onclick="generateGrid()">⚡ 生成图纸</button>
+					<button class="btn btn-purple" onclick="applyServerCartoon()">🎨 动漫化（RapidAPI）</button>
+					<!-- <button class="btn btn-purple" onclick="applyCartoonEffect()">🎨 人物动漫化</button> -->
+					<!-- <button class="btn btn-pink" onclick="applyPortraitCartoon()">👤 人物卡通化</button> -->
+					<button class="btn btn-outline" onclick="restoreOriginalImage()">↩️ 恢复原图</button>
                     <button class="btn btn-blue" id="batchSelectBtn" onclick="toggleBatchSelectMode()">🔲 批量修改色号</button>
                     <button class="btn btn-success" id="batchModifyBtn" style="display:none;" onclick="openBatchGridEditModal()">📦 批量修改</button>
                     <button class="btn btn-success" onclick="exportGridImage()">⬇ 导出图片</button>
@@ -2783,6 +2787,128 @@
             batchBtn.style.color = 'white';
             document.getElementById('batchModifyBtn').style.display = 'none';
         }
+		
+		// 存储原始图片数据，用于恢复
+let originalGridImageData = null;
+
+			// 动漫化处理
+			function applyCartoonEffect() {
+				if (!gridImageData) {
+					alert('请先上传一张图片！');
+					return;
+				}
+				if (!originalGridImageData) {
+					originalGridImageData = gridImageData;
+				}
+
+				const img = gridImageData;
+				const canvas = document.createElement('canvas');
+				const w = img.naturalWidth || img.width;
+				const h = img.naturalHeight || img.height;
+				canvas.width = w;
+				canvas.height = h;
+				const ctx = canvas.getContext('2d');
+				ctx.drawImage(img, 0, 0);
+				const imageData = ctx.getImageData(0, 0, w, h);
+				const data = imageData.data;
+
+				// 1. 提高饱和度（增加色彩鲜艳度）
+				for (let i = 0; i < data.length; i += 4) {
+					if (data[i+3] < 128) continue;
+					let r = data[i], g = data[i+1], b = data[i+2];
+					// 转为HSL提高饱和度
+					const max = Math.max(r, g, b);
+					const min = Math.min(r, g, b);
+					const l = (max + min) / 2;
+					if (max === min) continue;
+					const d = max - min;
+					const s = (l > 127) ? d / (510 - max - min) : d / (max + min);
+					// 提高饱和度 1.3 倍
+					const newS = Math.min(s * 1.3, 0.95);
+					// 转回RGB (简化，不精确转换，仅调整色差)
+					const factor = (newS / s) * d;
+					// 重新分配RGB保持色相
+					const avg = (r + g + b) / 3;
+					data[i] = Math.min(255, Math.max(0, avg + factor * (r - avg) / d));
+					data[i+1] = Math.min(255, Math.max(0, avg + factor * (g - avg) / d));
+					data[i+2] = Math.min(255, Math.max(0, avg + factor * (b - avg) / d));
+				}
+
+				// 2. 精细颜色量化（保留更多过渡）
+				const levels = 6; // 216色
+				const step = 256 / levels;
+				for (let i = 0; i < data.length; i += 4) {
+					if (data[i+3] < 128) continue;
+					data[i] = Math.floor(data[i] / step) * step + step/2;
+					data[i+1] = Math.floor(data[i+1] / step) * step + step/2;
+					data[i+2] = Math.floor(data[i+2] / step) * step + step/2;
+				}
+
+				// 3. 边缘检测（低阈值，保留边缘但线条柔和）
+				const grayData = new Uint8ClampedArray(data.length);
+				for (let i = 0; i < data.length; i += 4) {
+					const r = data[i], g = data[i+1], b = data[i+2];
+					const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+					grayData[i] = gray;
+					grayData[i+1] = gray;
+					grayData[i+2] = gray;
+					grayData[i+3] = data[i+3];
+				}
+
+				const sobelData = new Float32Array(w * h);
+				const kernelX = [-1,0,1, -2,0,2, -1,0,1];
+				const kernelY = [-1,-2,-1, 0,0,0, 1,2,1];
+				for (let y = 1; y < h-1; y++) {
+					for (let x = 1; x < w-1; x++) {
+						let gx = 0, gy = 0;
+						for (let dy = -1; dy <= 1; dy++) {
+							for (let dx = -1; dx <= 1; dx++) {
+								const px = x + dx, py = y + dy;
+								const idx = (py * w + px) * 4;
+								const val = grayData[idx];
+								gx += val * kernelX[(dy+1)*3 + (dx+1)];
+								gy += val * kernelY[(dy+1)*3 + (dx+1)];
+							}
+						}
+						const mag = Math.sqrt(gx*gx + gy*gy);
+						sobelData[y * w + x] = mag;
+					}
+				}
+
+				// 阈值较低，保留更多边缘，同时边缘线加粗
+				const threshold = 40;
+				const edgeStrength = 0.8; // 边缘线不完全是纯黑，偏灰使线条柔和
+				for (let y = 0; y < h; y++) {
+					for (let x = 0; x < w; x++) {
+						const idx = (y * w + x) * 4;
+						if (data[idx+3] < 128) continue;
+						const mag = sobelData[y * w + x];
+						if (mag > threshold) {
+							const intensity = Math.min(255, mag * 2);
+							const darken = Math.floor(intensity * edgeStrength);
+							data[idx] = Math.max(0, data[idx] - darken);
+							data[idx+1] = Math.max(0, data[idx+1] - darken);
+							data[idx+2] = Math.max(0, data[idx+2] - darken);
+						}
+					}
+				}
+
+				ctx.putImageData(imageData, 0, 0);
+
+				const newImg = new Image();
+				newImg.onload = function() {
+					gridImageData = newImg;
+					const wrapper = document.getElementById('cropContainerWrapper');
+					wrapper.style.display = 'block';
+					const imgEl = document.getElementById('cropImage');
+					imgEl.src = newImg.src;
+					cropRect = null;
+					drawCropCanvas();
+					document.getElementById('cropHint').classList.remove('hidden');
+					alert('动漫化处理完成！');
+				};
+				newImg.src = canvas.toDataURL('image/png');
+			}
 
         // ================================================================
         // 15. ★★★ 抠图功能 ★★★
@@ -3071,12 +3197,274 @@
 			alert(`自适应格数：宽度 ${gridW}，高度 ${gridH}`);
 		}
 		
+		function applyCartoonEffect() {
+			if (!gridImageData) {
+				alert('请先上传一张图片！');
+				return;
+			}
+			if (!originalGridImageData) {
+				originalGridImageData = gridImageData;
+			}
+
+			const img = gridImageData;
+			const canvas = document.createElement('canvas');
+			const w = img.naturalWidth || img.width;
+			const h = img.naturalHeight || img.height;
+			canvas.width = w;
+			canvas.height = h;
+			const ctx = canvas.getContext('2d');
+			ctx.drawImage(img, 0, 0);
+			const imageData = ctx.getImageData(0, 0, w, h);
+			const data = imageData.data;
+
+			// 颜色量化：使用更多颜色（125色），减少色块感
+			const levels = 5;
+			const step = 256 / levels;
+			for (let i = 0; i < data.length; i += 4) {
+				if (data[i+3] < 128) continue;
+				data[i] = Math.floor(data[i] / step) * step + step/2;
+				data[i+1] = Math.floor(data[i+1] / step) * step + step/2;
+				data[i+2] = Math.floor(data[i+2] / step) * step + step/2;
+			}
+
+			// 边缘检测，阈值适中，保留更多细节
+			const grayData = new Uint8ClampedArray(data.length);
+			for (let i = 0; i < data.length; i += 4) {
+				const r = data[i], g = data[i+1], b = data[i+2];
+				const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+				grayData[i] = gray;
+				grayData[i+1] = gray;
+				grayData[i+2] = gray;
+				grayData[i+3] = data[i+3];
+			}
+
+			const sobelData = new Float32Array(w * h);
+			const kernelX = [-1,0,1, -2,0,2, -1,0,1];
+			const kernelY = [-1,-2,-1, 0,0,0, 1,2,1];
+			for (let y = 1; y < h-1; y++) {
+				for (let x = 1; x < w-1; x++) {
+					let gx = 0, gy = 0;
+					for (let dy = -1; dy <= 1; dy++) {
+						for (let dx = -1; dx <= 1; dx++) {
+							const px = x + dx, py = y + dy;
+							const idx = (py * w + px) * 4;
+							const val = grayData[idx];
+							gx += val * kernelX[(dy+1)*3 + (dx+1)];
+							gy += val * kernelY[(dy+1)*3 + (dx+1)];
+						}
+					}
+					const mag = Math.sqrt(gx*gx + gy*gy);
+					sobelData[y * w + x] = mag;
+				}
+			}
+
+			const threshold = 60; // 降低阈值，保留更多边缘细节
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					const idx = (y * w + x) * 4;
+					if (data[idx+3] < 128) continue;
+					const mag = sobelData[y * w + x];
+					if (mag > threshold) {
+						data[idx] = 0;
+						data[idx+1] = 0;
+						data[idx+2] = 0;
+					}
+				}
+			}
+
+			ctx.putImageData(imageData, 0, 0);
+
+			const newImg = new Image();
+			newImg.onload = function() {
+				gridImageData = newImg;
+				const wrapper = document.getElementById('cropContainerWrapper');
+				wrapper.style.display = 'block';
+				const imgEl = document.getElementById('cropImage');
+				imgEl.src = newImg.src;
+				cropRect = null;
+				drawCropCanvas();
+				document.getElementById('cropHint').classList.remove('hidden');
+				alert('动漫化处理完成！');
+			};
+			newImg.src = canvas.toDataURL('image/png');
+		}
 		
-        // 初始化抠图事件
-        window.addEventListener('load', function() {
-            initCropEvents();
-            initMattingEvents();
-        });
+		function applyPortraitCartoon() {
+			if (!gridImageData) {
+				alert('请先上传一张图片！');
+				return;
+			}
+			if (!originalGridImageData) {
+				originalGridImageData = gridImageData;
+			}
+
+			const img = gridImageData;
+			const canvas = document.createElement('canvas');
+			const w = img.naturalWidth || img.width;
+			const h = img.naturalHeight || img.height;
+			canvas.width = w;
+			canvas.height = h;
+			const ctx = canvas.getContext('2d');
+			ctx.drawImage(img, 0, 0);
+			const imageData = ctx.getImageData(0, 0, w, h);
+			const data = imageData.data;
+
+			// 1. 轻量模糊（仅做一次3x3均值滤波，但保留边缘不模糊？为了细节，改为保留原图，不模糊）
+			// 为了保持细节，直接跳过模糊，或者使用双边滤波（太复杂），这里我们跳过。
+
+			// 2. 颜色量化：使用更多颜色（512色），保留渐变细节
+			const levels = 8;
+			const step = 256 / levels;
+			for (let i = 0; i < data.length; i += 4) {
+				if (data[i+3] < 128) continue;
+				data[i] = Math.floor(data[i] / step) * step + step/2;
+				data[i+1] = Math.floor(data[i+1] / step) * step + step/2;
+				data[i+2] = Math.floor(data[i+2] / step) * step + step/2;
+			}
+
+			// 边缘检测：阈值降低，保留更多轮廓细节
+			const grayData = new Uint8ClampedArray(data.length);
+			for (let i = 0; i < data.length; i += 4) {
+				const r = data[i], g = data[i+1], b = data[i+2];
+				const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+				grayData[i] = gray;
+				grayData[i+1] = gray;
+				grayData[i+2] = gray;
+				grayData[i+3] = data[i+3];
+			}
+
+			const sobelData = new Float32Array(w * h);
+			const kernelX = [-1,0,1, -2,0,2, -1,0,1];
+			const kernelY = [-1,-2,-1, 0,0,0, 1,2,1];
+			for (let y = 1; y < h-1; y++) {
+				for (let x = 1; x < w-1; x++) {
+					let gx = 0, gy = 0;
+					for (let dy = -1; dy <= 1; dy++) {
+						for (let dx = -1; dx <= 1; dx++) {
+							const px = x + dx, py = y + dy;
+							const idx = (py * w + px) * 4;
+							const val = grayData[idx];
+							gx += val * kernelX[(dy+1)*3 + (dx+1)];
+							gy += val * kernelY[(dy+1)*3 + (dx+1)];
+						}
+					}
+					const mag = Math.sqrt(gx*gx + gy*gy);
+					sobelData[y * w + x] = mag;
+				}
+			}
+
+			const threshold = 80; // 从150降低到80，保留更多细节
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					const idx = (y * w + x) * 4;
+					if (data[idx+3] < 128) continue;
+					const mag = sobelData[y * w + x];
+					if (mag > threshold) {
+						data[idx] = 0;
+						data[idx+1] = 0;
+						data[idx+2] = 0;
+					}
+				}
+			}
+
+			ctx.putImageData(imageData, 0, 0);
+
+			const newImg = new Image();
+			newImg.onload = function() {
+				gridImageData = newImg;
+				const wrapper = document.getElementById('cropContainerWrapper');
+				wrapper.style.display = 'block';
+				const imgEl = document.getElementById('cropImage');
+				imgEl.src = newImg.src;
+				cropRect = null;
+				drawCropCanvas();
+				document.getElementById('cropHint').classList.remove('hidden');
+				alert('卡通化完成！');
+			};
+			newImg.src = canvas.toDataURL('image/png');
+		}
+		
+		function applyServerCartoon() {
+			if (!gridImageData) {
+				alert('请先上传一张图片！');
+				return;
+			}
+			// 使用页面上正在显示的图片（cropImage）来避免跨域问题
+			const imgElement = document.getElementById('cropImage');
+			if (!imgElement || !imgElement.src || imgElement.src === '') {
+				alert('图片还未显示，请先上传并等待预览加载');
+				return;
+			}
+
+			const canvas = document.createElement('canvas');
+			const img = new Image();
+			img.crossOrigin = 'anonymous'; // 尝试设置，但如果是DataURL则没问题
+			img.onload = function() {
+				canvas.width = img.naturalWidth || img.width;
+				canvas.height = img.naturalHeight || img.height;
+				const ctx = canvas.getContext('2d');
+				ctx.drawImage(img, 0, 0);
+				// 导出为Blob
+				canvas.toBlob(function(blob) {
+					if (!blob) {
+						alert('无法导出图片，请尝试重新上传');
+						return;
+					}
+					const formData = new FormData();
+					formData.append('image', blob, 'image.png');
+					// ★★★ 这里修改风格为卡通风格 ★★★
+					formData.append('style', 'ghibli'); // 可选: ghibli, handdrawn, illustration
+
+					const btn = document.querySelector('[onclick="applyServerCartoon()"]');
+					if (btn) btn.textContent = '⏳ 处理中...';
+
+					fetch('http://localhost:5000/cartoonize', {
+						method: 'POST',
+						body: formData
+					})
+					.then(response => {
+						if (!response.ok) {
+							return response.json().then(err => { throw new Error(err.message || '服务器错误'); });
+						}
+						return response.json();
+					})
+					.then(data => {
+						if (btn) btn.textContent = '🎨 动漫化';
+						if (data.image_url) {
+							const newImg = new Image();
+							newImg.onload = function() {
+								gridImageData = newImg;
+								const wrapper = document.getElementById('cropContainerWrapper');
+								wrapper.style.display = 'block';
+								const imgEl = document.getElementById('cropImage');
+								imgEl.src = newImg.src;
+								cropRect = null;
+								drawCropCanvas();
+								document.getElementById('cropHint').classList.remove('hidden');
+								alert('卡通化完成！');
+							};
+							newImg.src = data.image_url;
+						} else {
+							alert('转换失败：' + JSON.stringify(data));
+						}
+					})
+					.catch(err => {
+						if (btn) btn.textContent = '🎨 动漫化';
+						alert('请求失败：' + err.message);
+						console.error(err);
+					});
+				}, 'image/png');
+			};
+			// 如果 imgElement 是 DataURL，直接使用其 src
+			img.src = imgElement.src;
+		}
+				
+				
+		// 初始化抠图事件
+		window.addEventListener('load', function() {
+			initCropEvents();
+			initMattingEvents();
+		});
 
         // ================================================================
         // 16. 初始化
