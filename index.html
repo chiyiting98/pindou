@@ -971,6 +971,7 @@
                     <label style="font-weight:500; font-size:14px; display:inline-flex; align-items:center; gap:4px;">
                         高度格数：<input type="number" id="gridHeight" value="52" min="1" max="100" style="width:70px; padding:8px; border-radius:8px; border:1px solid #d1d9e6; min-height:44px;">
                     </label>
+					<button class="btn btn-outline" onclick="autoFitGrid()">📐 自适应</button>
                 </div>
                 <!-- 第二行：所有操作按钮 -->
                 <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
@@ -981,7 +982,7 @@
                     <button class="btn btn-blue" id="batchSelectBtn" onclick="toggleBatchSelectMode()">🔲 批量修改色号</button>
                     <button class="btn btn-success" id="batchModifyBtn" style="display:none;" onclick="openBatchGridEditModal()">📦 批量修改</button>
                     <button class="btn btn-success" onclick="exportGridImage()">⬇ 导出图片</button>
-                    <button class="btn btn-warning" onclick="exportGridColors()">📊 导出色号</button>
+                    <!--<button class="btn btn-warning" onclick="exportGridColors()">📊 导出色号</button>-->
                     <button class="btn btn-danger" onclick="deductGridInventory()">📉 扣除库存</button>
                     <button class="btn btn-outline" onclick="clearGrid()">✖ 清空</button>
                     
@@ -2213,8 +2214,8 @@
 			if (!gridImageData) { alert('请先上传或粘贴一张图片！'); return; }
 			const w = parseInt(document.getElementById('gridWidth').value) || 32;
 			const h = parseInt(document.getElementById('gridHeight').value) || 32;
-			if (w < 1 || h < 1 || w > 200 || h > 200) {
-				alert('格数请设置在 1～200 之间。');
+			if (w < 1 || h < 1 ) {
+				alert('格数设置需大于 1 。');
 				return;
 			}
 			gridWidth = w;
@@ -3043,6 +3044,31 @@
 			// 计算相对亮度（标准公式）
 			const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 			return luminance;
+		}
+		
+		function autoFitGrid() {
+			if (!gridImageData) {
+				alert('请先上传图片！');
+				return;
+			}
+			const img = gridImageData;
+			const w = img.naturalWidth || img.width;
+			const h = img.naturalHeight || img.height;
+			if (w === 0 || h === 0) {
+				alert('无法获取图片尺寸');
+				return;
+			}
+			// 基准：总格数不超过 2500（可调整），但保持宽高比
+			const maxTotal = 2500;
+			const aspect = w / h;
+			let gridW = Math.round(Math.sqrt(maxTotal * aspect));
+			let gridH = Math.round(Math.sqrt(maxTotal / aspect));
+			// 至少 1
+			gridW = Math.max(1, gridW);
+			gridH = Math.max(1, gridH);
+			document.getElementById('gridWidth').value = gridW;
+			document.getElementById('gridHeight').value = gridH;
+			alert(`自适应格数：宽度 ${gridW}，高度 ${gridH}`);
 		}
 		
 		
