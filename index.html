@@ -901,33 +901,41 @@
         </div>
 
         <!-- ===== 抠图模态框 ===== -->
-        <div class="modal-overlay" id="mattingModal">
-            <div class="modal-box matting-modal">
-                <h3>✂️ 抠图工具</h3>
-                <p style="color:#64748b; margin-bottom:8px;">使用画笔标记保留区域（绿色）和去除区域（红色），点击“预览抠图”查看效果。</p>
-                <div class="toolbar-row">
-                    <button class="btn btn-success" id="mattingKeepBtn" onclick="setMattingTool('keep')">✏️ 保留</button>
-                    <button class="btn btn-danger" id="mattingRemoveBtn" onclick="setMattingTool('remove')">✏️ 去除</button>
-                    <button class="btn btn-outline" id="mattingEraseBtn" onclick="setMattingTool('erase')">🧹 橡皮擦</button>
-                    <button class="btn btn-outline" onclick="clearMattingMask()">🗑️ 清空标记</button>
-                    <button class="btn btn-primary" onclick="previewMatting()">👁️ 预览抠图</button>
-                    <button class="btn btn-success" onclick="applyMatting()">✅ 应用抠图</button>
-                    <button class="btn btn-outline" onclick="closeMattingModal()">✖ 关闭</button>
-                </div>
-				<span style="display:inline-flex; align-items:center; gap:6px; margin-left:8px;">
+		<div class="modal-overlay" id="mattingModal">
+			<div class="modal-box matting-modal">
+				<h3>✂️ 抠图工具</h3>
+				<p style="color:#64748b; margin-bottom:8px;">使用画笔标记保留区域（绿色）和去除区域（红色），点击“预览抠图”查看效果。</p>
+				
+				<!-- 工具栏（按钮） -->
+				<div class="toolbar-row">
+					<button class="btn btn-success" id="mattingKeepBtn" onclick="setMattingTool('keep')">✏️ 保留</button>
+					<button class="btn btn-danger" id="mattingRemoveBtn" onclick="setMattingTool('remove')">✏️ 去除</button>
+					<button class="btn btn-outline" id="mattingEraseBtn" onclick="setMattingTool('erase')">🧹 橡皮擦</button>
+					<button class="btn btn-outline" onclick="clearMattingMask()">🗑️ 清空标记</button>
+					<button class="btn btn-primary" onclick="previewMatting()">👁️ 预览抠图</button>
+					<button class="btn btn-success" onclick="applyMatting()">✅ 应用抠图</button>
+					<button class="btn btn-outline" onclick="closeMattingModal()">✖ 关闭</button>
+				</div>
+
+				<!-- ★★★ 预览区域：紧挨着按钮下方 ★★★ -->
+				<div class="preview-row" style="margin:6px 0 8px 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+					<span style="font-weight:500;">预览：</span>
+					<img id="mattingPreview" alt="抠图预览" style="display:none; max-height:100px; border:1px solid #d1d9e6; border-radius:8px; background:#fff;">
+				</div>
+
+				<!-- 笔刷大小控制 -->
+				<div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:8px;">
 					<label style="font-weight:500; font-size:14px;">笔刷大小：</label>
 					<input type="range" id="mattingBrushSize" min="5" max="50" value="10" style="width:100px;">
 					<span id="mattingBrushSizeDisplay" style="font-size:14px; min-width:30px;">10</span>
-				</span>
-                <div class="canvas-wrapper" id="mattingCanvasWrapper">
-                    <canvas id="mattingCanvas"></canvas>
-                </div>
-                <div class="preview-row">
-                    <span>预览：</span>
-                    <img id="mattingPreview" alt="抠图预览" style="display:none;">
-                </div>
-            </div>
-        </div>
+				</div>
+
+				<!-- 画布 -->
+				<div class="canvas-wrapper" id="mattingCanvasWrapper">
+					<canvas id="mattingCanvas"></canvas>
+				</div>
+			</div>
+		</div>
 
         <!-- 颜色选择模态框（保留，用于表格色块） -->
         <div class="color-modal-overlay" id="colorModal">
@@ -2241,15 +2249,30 @@
 				const row = [];
 				for (let x = 0; x < w; x++) {
 					const idx = (y * w + x) * 4;
-					const r = data[idx], g = data[idx+1], b = data[idx+2];
-					let minDist = Infinity, bestCode = null;
-					for (const p of palette) {
-						const dr = r - p.r, dg = g - p.g, db = b - p.b;
-						const dist = dr*dr + dg*dg + db*db;
-						if (dist < minDist) { minDist = dist; bestCode = p.code; }
+					const r = data[idx];
+					const g = data[idx+1];
+					const b = data[idx+2];
+					const a = data[idx+3];
+
+					let bestCode = null;
+					let hex = '#FFFFFF';
+
+					// 透明度阈值调低，确保透明区域被识别
+					if (a < 30) {  // 30 更严格，仅完全透明区域
+						bestCode = null;
+						hex = '#FFFFFF';
+					} else {
+						let minDist = Infinity;
+						for (const p of palette) {
+							const dr = r - p.r, dg = g - p.g, db = b - p.b;
+							const dist = dr*dr + dg*dg + db*db;
+							if (dist < minDist) { minDist = dist; bestCode = p.code; }
+						}
+						hex = getColorForCode(bestCode);
 					}
-					const hex = getColorForCode(bestCode);
-					row.push({ code: bestCode, hex: hex });
+
+					// 如果 bestCode 为 null，则 code 为空字符串
+					row.push({ code: bestCode || '', hex: hex });
 				}
 				gridData.push(row);
 			}
@@ -2286,18 +2309,18 @@
 					cell.dataset.x = x;
 					cell.dataset.y = y;
 					
-					// ★★★★★ 创建色号文字 ★★★★★
-					const textSpan = document.createElement('span');
-					textSpan.className = 'grid-cell-text';
-					textSpan.textContent = code;
-					// 自动对比色
-					const contrastColor = getContrastColor(hex);
-					textSpan.style.color = contrastColor;
-					// 动态字体大小（根据格子尺寸自适应）
-					const cellWidth = 24; // 默认，可计算实际宽度
-					const fontSize = Math.max(5, Math.min(10, cellWidth / 3));
-					textSpan.style.fontSize = fontSize + 'px';
-					cell.appendChild(textSpan);
+					// 只有非空 code 才创建文字
+					if (code) {
+						const textSpan = document.createElement('span');
+						textSpan.className = 'grid-cell-text';
+						textSpan.textContent = code;
+						const contrastColor = getContrastColor(hex);
+						textSpan.style.color = contrastColor;
+						const cellWidth = 24;
+						const fontSize = Math.max(5, Math.min(10, cellWidth / 3));
+						textSpan.style.fontSize = fontSize + 'px';
+						cell.appendChild(textSpan);
+					}
 					
 					cell.addEventListener('click', function(e) {
 						handleCellClick(x, y, e);
