@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>拼豆 · 真实色卡 · 含透色系</title>
+    <title>拼豆 · 库存 & 图纸</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
-        /* ===== 基础样式（与之前完全一致） ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -18,7 +17,7 @@
             font-size: 16px;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             width: 100%;
             background: #ffffff;
             border-radius: 16px;
@@ -41,148 +40,81 @@
             color: #64748b;
             margin-left: auto;
         }
-        .ocr-collapsible {
-            margin: 6px 0 12px;
-            border: 1px solid #bae6fd;
+        .collapsible {
+            margin: 8px 0 12px;
             border-radius: 14px;
-            background: #f0f9ff;
             overflow: hidden;
+            border: 1px solid #e2e8f0;
+            background: #fff;
         }
-        .ocr-header {
+        .collapsible-header {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 12px 18px;
             cursor: pointer;
             user-select: none;
             gap: 8px;
-            min-height: 48px;
+            min-height: 50px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.15s;
         }
-        .ocr-header .status {
-            font-size: 14px;
-            color: #0284c7;
-            font-weight: 500;
+        .collapsible-header:hover {
+            background: #f1f5f9;
         }
-        .ocr-header .toggle-btn {
-            background: none;
-            border: none;
-            font-size: 16px;
+        .collapsible-header .title {
             font-weight: 600;
-            color: #0ea5e9;
+            font-size: 16px;
+            color: #1e293b;
+        }
+        .collapsible-header .status {
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            transition: color 0.25s;
+        }
+        .collapsible-header .status.active {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .collapsible-header .toggle-btn {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
             padding: 6px 16px;
             border-radius: 30px;
-            background: #e0f2fe;
-            min-height: 40px;
+            min-height: 36px;
+            transition: 0.2s;
         }
-        .ocr-header .toggle-btn:hover { background: #bae6fd; }
-        .ocr-body {
-            padding: 0 16px 16px;
+        .collapsible-header .toggle-btn:hover {
+            background: #2563eb;
+        }
+        .collapsible-body {
+            padding: 16px;
             display: none;
             flex-direction: column;
             gap: 12px;
-        }
-        .ocr-body.open { display: flex; }
-        .ocr-body .upload-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .ocr-body .upload-area img {
-            max-height: 80px;
-            border-radius: 6px;
-            border: 1px solid #d1d9e6;
-            display: none;
-        }
-        .ocr-body .upload-area .hint {
-            font-size: 14px;
-            color: #64748b;
-        }
-        .ocr-body textarea {
-            width: 100%;
-            height: 100px;
-            border-radius: 10px;
-            border: 1px solid #d1d9e6;
-            padding: 10px 12px;
-            font-family: monospace;
-            font-size: 15px;
-            resize: vertical;
             background: #fff;
         }
-        .ocr-body .parsed-list {
-            max-height: 220px;
-            overflow-y: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 6px 8px;
-            background: #fafcff;
-            display: none;
-        }
-        .ocr-body .parsed-list table {
-            width: 100%;
-            font-size: 15px;
-            border-collapse: collapse;
-        }
-        .ocr-body .parsed-list td {
-            padding: 8px 4px;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: center;
-            vertical-align: middle;
-        }
-        .ocr-body .parsed-list input {
-            width: 70px;
-            padding: 8px 4px;
-            border-radius: 8px;
-            border: 1px solid #d1d9e6;
-            font-size: 15px;
-            text-align: center;
-            min-height: 40px;
-        }
-        .ocr-body .parsed-list input.code-input { width: 60px; }
-        .ocr-body .parsed-list .delete-btn {
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 20px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            min-height: 40px;
-            min-width: 40px;
-        }
-        .ocr-body .parsed-list .delete-btn:hover { background: #fee2e2; }
-        .parsed-code-cell {
+        .collapsible-body.open {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
         }
-        .parsed-code-cell .color-dot {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid rgba(0,0,0,0.08);
-            flex-shrink: 0;
+        .collapsible.grid-collapsible,
+        .collapsible.ocr-collapsible {
+            border-color: #d1d5db;
         }
-        .ocr-body .ocr-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            margin-top: 4px;
-        }
-        .ocr-body .parsed-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 6px;
+        .collapsible.grid-collapsible .collapsible-header,
+        .collapsible.ocr-collapsible .collapsible-header {
+            background: #f8fafc;
         }
 
         .btn {
-            padding: 10px 18px;
+            padding: 10px 20px;
             border-radius: 40px;
             font-size: 15px;
             font-weight: 600;
@@ -197,6 +129,8 @@
             align-items: center;
             justify-content: center;
             touch-action: manipulation;
+            text-decoration: none;
+            user-select: none;
         }
         .btn-primary { background: #3b82f6; color: white; }
         .btn-primary:hover { background: #2563eb; }
@@ -208,9 +142,9 @@
         .btn-purple:hover { background: #7c3aed; }
         .btn-danger { background: #ef4444; color: white; }
         .btn-danger:hover { background: #dc2626; }
-        .btn-outline { background: transparent; border: 1px solid #d1d9e6; }
+        .btn-outline { background: transparent; border: 1px solid #d1d9e6; color: #334155; }
         .btn-outline:hover { background: #f1f5f9; }
-        .btn-sm { padding: 6px 12px; font-size: 13px; min-height: 36px; }
+        .btn-sm { padding: 6px 14px; font-size: 13px; min-height: 36px; }
         .btn-blue { background: #3b82f6; color: white; }
         .btn-blue:hover { background: #2563eb; }
         .btn-delete-row {
@@ -225,7 +159,86 @@
             min-width: 40px;
             transition: 0.2s;
         }
-        .btn-delete-row:hover { background: #fee2e2; }
+        .btn-delete-row:hover {
+            background: #fee2e2;
+            transform: scale(1.1);
+        }
+
+        input[type="number"], input[type="text"], select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d9e6;
+            font-size: 15px;
+            background: white;
+            min-height: 44px;
+            width: 100%;
+        }
+        .inline-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .inline-group label {
+            font-weight: 500;
+            color: #334155;
+            font-size: 14px;
+        }
+        .inline-group input[type="number"] {
+            width: 80px;
+        }
+
+        .file-label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .file-label input[type="file"] {
+            display: none;
+        }
+
+        .crop-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            margin: 8px 0;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f1f5f9;
+            touch-action: none;
+        }
+        .crop-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            pointer-events: none;
+        }
+        .crop-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .crop-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        .crop-hint.hidden { display: none; }
 
         .toolbar {
             display: flex;
@@ -309,33 +322,6 @@
             gap: 8px;
             flex-wrap: wrap;
             align-items: center;
-        }
-
-        .batch-panel {
-            margin: 0 0 12px;
-            padding: 12px 16px;
-            background: #f0fdf4;
-            border-radius: 12px;
-            border: 1px solid #bbf7d0;
-            display: none;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-        }
-        .batch-panel.active { display: flex; }
-        .batch-panel select, .batch-panel input {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d9e6;
-            font-size: 15px;
-            background: white;
-            min-height: 44px;
-        }
-        .batch-panel input[type="number"] { width: 80px; }
-        .batch-panel label {
-            font-weight: 500;
-            color: #334155;
-            font-size: 15px;
         }
 
         .table-wrap {
@@ -443,9 +429,7 @@
             cursor: pointer;
             accent-color: #3b82f6;
         }
-        .col-check input[type="checkbox"] {
-            transform: scale(1.2);
-        }
+        .col-check input[type="checkbox"] { transform: scale(1.2); }
 
         .footer-note {
             margin-top: 12px;
@@ -459,7 +443,57 @@
             padding: 0 2px;
         }
 
-        /* ===== 颜色选择模态框 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px 28px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-box h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+            color: #1e293b;
+        }
+        .modal-box label {
+            display: block;
+            margin: 10px 0 4px;
+            font-weight: 500;
+            color: #334155;
+        }
+        .modal-box input, .modal-box select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d9e6;
+            font-size: 15px;
+            min-height: 44px;
+            background: white;
+        }
+        .modal-box .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
         .color-modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -506,54 +540,159 @@
             margin-top: 12px;
         }
 
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+        .grid-container {
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+        .grid-wrapper {
+            display: inline-block;
+            border: 2px solid #d1d9e6;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+        .grid-row { display: flex; }
+        .grid-cell {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: 0.1s;
+            position: relative;
+        }
+        .grid-cell:hover {
+            transform: scale(1.1);
+            z-index: 2;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        .grid-cell.selected {
+            box-shadow: 0 0 0 3px #f59e0b, 0 0 0 5px #3b82f6 !important;
+            transform: scale(1.05);
+            z-index: 3;
+        }
+        @media (max-width: 640px) {
+            .grid-cell { width: 18px; height: 18px; }
+        }
+        @media (max-width: 400px) {
+            .grid-cell { width: 14px; height: 14px; }
+        }
+
+        .grid-stats {
+            margin-top: 12px;
             display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .grid-stats .stat-item {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            z-index: 999;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.3s;
+            gap: 6px;
         }
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
+        .grid-stats .stat-item .dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.1);
         }
-        .modal-box {
-            background: #fff;
-            border-radius: 16px;
-            padding: 24px 28px;
-            max-width: 420px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+        .batch-panel {
+            display: none;
+            margin: 0 0 12px;
+            padding: 12px 16px;
+            background: #f0fdf4;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
         }
-        .modal-box h3 {
-            margin-bottom: 16px;
-            font-size: 18px;
-            color: #1e293b;
+        .batch-panel.active { display: flex; }
+        .batch-panel select, .batch-panel input {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d9e6;
+            font-size: 15px;
+            background: white;
+            min-height: 44px;
         }
-        .modal-box label {
-            display: block;
-            margin: 10px 0 4px;
+        .batch-panel input[type="number"] { width: 80px; }
+        .batch-panel label {
             font-weight: 500;
             color: #334155;
+            font-size: 15px;
         }
-        .modal-box input {
+
+        #restoreFileInput { display: none; }
+
+        .grid-edit-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .grid-edit-row .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .grid-edit-row .field-group label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .filter-select-wrapper {
+            position: relative;
+        }
+        .filter-select-wrapper input {
             width: 100%;
             padding: 10px 12px;
             border-radius: 8px;
             border: 1px solid #d1d9e6;
             font-size: 15px;
             min-height: 44px;
+            background: white;
         }
-        .modal-box .modal-actions {
+        .filter-select-wrapper .filter-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
+            margin-top: 4px;
+            z-index: 10;
+            display: none;
+        }
+        .filter-select-wrapper .filter-list.show {
+            display: block;
+        }
+        .filter-select-wrapper .filter-list .item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: 0.1s;
             display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-select-wrapper .filter-list .item:hover {
+            background: #f1f5f9;
+        }
+        .filter-select-wrapper .filter-list .item .dot {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.08);
+            flex-shrink: 0;
         }
 
         @media (max-width: 640px) {
@@ -564,15 +703,6 @@
             .stats { justify-content: center; }
             .search-box { width: 100%; }
             .btn-group { justify-content: center; }
-            .ocr-header { padding: 10px 12px; }
-            .ocr-header .status { font-size: 13px; }
-            .ocr-body { padding: 0 12px 12px; }
-            .ocr-body textarea { height: 80px; font-size: 14px; }
-            .ocr-body .parsed-list td { padding: 6px 2px; }
-            .ocr-body .parsed-list input { width: 60px; font-size: 14px; padding: 6px 2px; }
-            .ocr-body .parsed-list input.code-input { width: 50px; }
-            .btn { font-size: 14px; padding: 8px 14px; min-height: 40px; }
-            .batch-panel select, .batch-panel input { font-size: 14px; min-height: 40px; }
             .col-check { width: 10%; }
             .col-id { width: 10%; }
             .col-code { width: 28%; }
@@ -585,10 +715,10 @@
             .stats .low-stock-badge { font-size: 13px; padding: 2px 8px; }
             .stats .threshold-setting { font-size: 12px; padding: 2px 8px; }
             .footer-note { font-size: 12px; }
-            .ocr-body .upload-area .hint { font-size: 12px; }
-            .parsed-code-cell .color-dot { width: 16px; height: 16px; }
-            .btn-delete-row { font-size: 18px; min-height: 36px; min-width: 36px; }
-            input[type="checkbox"] { width: 18px; height: 18px; }
+            .inline-group input[type="number"] { width: 60px; }
+            .batch-panel { flex-direction: column; align-items: stretch; }
+            .grid-cell { width: 18px; height: 18px; }
+            .filter-select-wrapper .filter-list .item { padding: 6px 10px; font-size: 14px; }
         }
         @media (max-width: 400px) {
             .col-check { width: 12%; }
@@ -597,1093 +727,1808 @@
             .col-qty { width: 30%; }
             .col-delete { width: 22%; }
             .col-qty input { width: 90%; }
-            .ocr-body .parsed-list input { width: 50px; }
-            .ocr-body .parsed-list input.code-input { width: 40px; }
         }
         .table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
         .table-wrap::-webkit-scrollbar-track { background: #f1f5f9; }
         .table-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .table-wrap::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        #restoreFileInput { display: none; }
     </style>
 </head>
 <body>
-<div class="container" id="appContainer">
-    <h1>
-        🧩 拼豆 · 含透色系
-        <small>点击色块选色 · 排序</small>
-    </h1>
+    <div class="container" id="appContainer">
+        <h1>
+            🧩 拼豆 · 库存 & 图纸
+            <small>管理库存 · 生成图纸</small>
+        </h1>
 
-    <!-- 添加色号弹窗 -->
-    <div class="modal-overlay" id="addColorModal">
-        <div class="modal-box">
-            <h3>➕ 添加新色号</h3>
-            <label>色号代码（如 X1）</label>
-            <input type="text" id="newColorCode" placeholder="例如：X1" value="">
-            <label>颜色名称（可选）</label>
-            <input type="text" id="newColorName" placeholder="例如：自定义红色" value="">
-            <label>初始数量</label>
-            <input type="number" id="newColorQty" placeholder="0" value="0" min="0" step="1">
-            <div class="modal-actions">
-                <button class="btn btn-outline" onclick="closeAddModal()">取消</button>
-                <button class="btn btn-primary" onclick="confirmAddColor()">添加</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 设置预警阈值弹窗 -->
-    <div class="modal-overlay" id="thresholdModal">
-        <div class="modal-box">
-            <h3>⚙️ 设置库存预警阈值</h3>
-            <label>当数量低于此值时触发预警（橙色高亮）</label>
-            <input type="number" id="thresholdInput" value="100" min="0" step="1">
-            <div class="modal-actions">
-                <button class="btn btn-outline" onclick="closeThresholdModal()">取消</button>
-                <button class="btn btn-primary" onclick="confirmThreshold()">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 颜色选择模态框 -->
-    <div class="color-modal-overlay" id="colorModal">
-        <div class="color-modal-box">
-            <h4 id="colorModalTitle">🎨 选择颜色</h4>
-            <input type="color" id="colorPickerInput" value="#cccccc">
-            <div class="modal-actions">
-                <button class="btn btn-outline" onclick="closeColorModal()">取消</button>
-                <button class="btn btn-primary" onclick="confirmColorChange()">确认</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- OCR面板 -->
-    <div class="ocr-collapsible">
-        <div class="ocr-header" onclick="toggleOcr()">
-            <span>📸 上传消耗清单截图</span>
-            <span class="status" id="ocrStatus">📂 已展开</span>
-            <button class="toggle-btn" id="ocrToggleBtn">收起</button>
-        </div>
-        <div class="ocr-body open" id="ocrBody">
-            <div class="upload-area">
-                <input type="file" id="ocrImageUpload" accept="image/*" style="display:none">
-                <button class="btn btn-purple" onclick="document.getElementById('ocrImageUpload').click()">📷 选择图片</button>
-                <button class="btn btn-outline" onclick="alert('在页面任意位置按 Ctrl+V 粘贴图片')">📋 粘贴上传</button>
-                <img id="ocrPreview" alt="预览">
-                <span class="hint">支持 JPG / PNG · 支持粘贴</span>
-            </div>
-            <textarea id="ocrText" placeholder="识别后的文字或手动粘贴文本"></textarea>
-            <div class="ocr-actions">
-                <button class="btn btn-primary" onclick="parseOcrText()">🔍 解析色号</button>
-                <button class="btn btn-blue" onclick="parseTextToParsed()">📝 解析文本</button>
-                <button class="btn btn-success" onclick="applyOcrBatch('subtract')">⬇️ 扣除</button>
-                <button class="btn btn-warning" onclick="applyOcrBatch('add')">⬆️ 增加</button>
-                <button class="btn btn-outline" onclick="clearOcr()">✖ 清空</button>
-                <span style="font-size:13px; color:#64748b;">默认扣除</span>
-            </div>
-            <div class="parsed-list" id="parsedList">
-                <table>
-                    <thead><tr><th>#</th><th>色号</th><th>数量</th><th style="width:44px;">操作</th></tr></thead>
-                    <tbody id="parsedBody"></tbody>
-                </table>
-                <div class="parsed-actions">
-                    <button class="btn btn-outline btn-sm" onclick="addParsedRow()">➕ 新增行</button>
+        <!-- 模态框：添加色号 -->
+        <div class="modal-overlay" id="addColorModal">
+            <div class="modal-box">
+                <h3>➕ 添加新色号</h3>
+                <label>色号代码（如 X1）</label>
+                <input type="text" id="newColorCode" placeholder="例如：X1" value="">
+                <label>颜色名称（可选）</label>
+                <input type="text" id="newColorName" placeholder="例如：自定义红色" value="">
+                <label>初始数量</label>
+                <input type="number" id="newColorQty" placeholder="0" value="0" min="0" step="1">
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeAddModal()">取消</button>
+                    <button class="btn btn-primary" onclick="confirmAddColor()">添加</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 批量修改面板 -->
-    <div class="batch-panel" id="batchPanel">
-        <label>范围：</label>
-        <select id="batchScope">
-            <option value="filtered">当前筛选</option>
-            <option value="all">全部色号</option>
-            <option value="selected" selected>已选色号</option>
-        </select>
-        <label>操作：</label>
-        <select id="batchOperation">
-            <option value="add">增加</option>
-            <option value="subtract">减少</option>
-            <option value="set">设为</option>
-        </select>
-        <input type="number" id="batchValue" value="1" min="0" step="1">
-        <button class="btn btn-primary" onclick="batchModify()">执行</button>
-        <button class="btn btn-outline" onclick="toggleBatchPanel(false)">收起</button>
-    </div>
-
-    <!-- 工具栏 -->
-    <div class="toolbar">
-        <div class="stats">
-            <span>📦 <span id="total-count">0</span></span>
-            <span>📋 <span id="filled-rows">0</span>/<span id="total-colors">228</span></span>
-            <span class="low-stock-badge" id="lowStockBadge" onclick="toggleLowStockFilter()">
-                ⚠️ &lt;<span id="threshold-display">100</span>：<span id="low-stock-count">0</span>种
-            </span>
-            <span class="threshold-setting" onclick="openThresholdModal()">⚙️ 设置阈值</span>
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%;">
-            <div class="search-box">
-                <span>🔍</span>
-                <input type="text" id="searchInput" placeholder="搜索色号..." oninput="filterTable()">
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="openAddModal()">➕ 添加色号</button>
-                <button class="btn btn-warning" onclick="toggleBatchPanel(true)">📦 批量</button>
-                <button class="btn btn-success" onclick="exportCSV()">⬇ CSV</button>
-                <button class="btn btn-primary" onclick="backupData()">💾 备份</button>
-                <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">📂 恢复</button>
-                <input type="file" id="restoreFileInput" accept=".json" onchange="restoreData(event)">
-                <button class="btn btn-danger" onclick="resetAll()">↺ 清空</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 主表格 -->
-    <div class="table-wrap" id="tableWrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-check">
-                        <input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes(this.checked)">
-                    </th>
-                    <th class="col-id">#</th>
-                    <th class="col-code">色号</th>
-                    <th class="col-qty" onclick="toggleSort()">
-                        数量 <span class="sort-icon" id="sortIcon">↕</span>
-                    </th>
-                    <th class="col-delete">操作</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-
-    <div class="footer-note">
-        <span>💡 点击色块或色号选色 · 点击“数量”排序 · 橙色 = 低于阈值</span>
-        <span><kbd>Ctrl+F</kbd> 搜索</span>
-    </div>
-</div>
-
-<script>
-// ================================================================
-// 1. ★★★ 更新后的默认色号（原221色 + 新增7色） ★★★
-// ================================================================
-const DEFAULT_SERIES = { A:26, B:32, C:29, D:26, E:24, F:25, G:21, H:23, M:15 };
-const EXTRA_CODES = ['P3','P8','P10','R3','R7','R11','T1']; // 新增透色系
-const DEFAULT_CODES = [];
-for (const [series, count] of Object.entries(DEFAULT_SERIES)) {
-    for (let i = 1; i <= count; i++) DEFAULT_CODES.push(series + i);
-}
-// 追加新色号
-DEFAULT_CODES.push(...EXTRA_CODES);
-
-// ================================================================
-// 2. ★★★ 更新后的颜色映射（含透色系） ★★★
-// ================================================================
-const DEFAULT_COLOR_MAP = {
-    // A组 黄橙系
-    'A1':'#F5E6CA','A2':'#FFFACD','A3':'#FFFFE0','A4':'#FFF44F','A5':'#FFD700',
-    'A6':'#FFC68A','A7':'#FFA500','A8':'#FFD27A','A9':'#FFC4A3','A10':'#E8783A',
-    'A11':'#F5C89A','A12':'#D4A050','A13':'#FF8C00','A14':'#FF4500','A15':'#F5DEB3',
-    'A16':'#D2B48C','A17':'#C3A06A','A18':'#CD853F','A19':'#A0522D','A20':'#8B7355',
-    'A21':'#C4B09A','A22':'#9C8A70','A23':'#B87A4A','A24':'#C4B49A','A25':'#A67B5B','A26':'#6B4F3A',
-    // B组 绿色系
-    'B1':'#D0E84A','B2':'#7CCD7C','B3':'#66CD00','B4':'#00C957','B5':'#00FF7F',
-    'B6':'#3CB371','B7':'#2E8B57','B8':'#228B22','B9':'#006400','B10':'#556B2F',
-    'B11':'#9ACD32','B12':'#98FB98','B13':'#AFEEEE','B14':'#00CED1','B15':'#6B8E23',
-    'B16':'#8FBC8F','B17':'#C0D890','B18':'#BDB76B','B19':'#6B6B3A','B20':'#4A5D23',
-    'B21':'#B0E0E6','B22':'#E0FFFF','B23':'#C4C88A','B24':'#E0F0E0','B25':'#C0D0C0',
-    'B26':'#8FBC8F','B27':'#7A9A7A','B28':'#6A8C6A','B29':'#4A6A4A','B30':'#3A5A3A','B31':'#2A4A2A','B32':'#1A3A1A',
-    // C组 蓝色系
-    'C1':'#87CEEB','C2':'#00BFFF','C3':'#00B2EE','C4':'#1E90FF','C5':'#4169E1',
-    'C6':'#0000CD','C7':'#00008B','C8':'#191970','C9':'#0A0A3A','C10':'#4A6A9A',
-    'C11':'#B0C4DE','C12':'#F0F8FF','C13':'#C0D8E8','C14':'#D0E4F0','C15':'#8AB8D8',
-    'C16':'#6A8CB0','C17':'#4A6A8A','C18':'#3A5A7A','C19':'#6A7A8A','C20':'#7A8A9A',
-    'C21':'#A0B8C8','C22':'#C0D8E0','C23':'#5A7A8A','C24':'#4A6A7A','C25':'#B0C8D0',
-    'C26':'#3A5A6A','C27':'#2A4A5A','C28':'#1A3A4A','C29':'#0A2A3A',
-    // D组 紫色&蓝紫系
-    'D1':'#C8A2C8','D2':'#D8B4D8','D3':'#9370DB','D4':'#8A2BE2','D5':'#9B30FF',
-    'D6':'#7A2D8A','D7':'#4A0A5A','D8':'#2A0A3A','D9':'#4A1A2A','D10':'#6A4A7A',
-    'D11':'#C0B0C0','D12':'#D0C0D0','D13':'#A8A0B0','D14':'#B09AB0','D15':'#8A7A8A',
-    'D16':'#6A5A6A','D17':'#5A4A5A','D18':'#E0C8D0','D19':'#D0B8C0','D20':'#A08890',
-    'D21':'#908080','D22':'#C8B8C0','D23':'#B0A8B0','D24':'#A098A0','D25':'#8A7A90','D26':'#C0B0C8',
-    // E组 粉色玫红系
-    'E1':'#FFDAB9','E2':'#FFB6C1','E3':'#FF69B4','E4':'#FF1493','E5':'#DB7093',
-    'E6':'#C71585','E7':'#8B0A50','E8':'#FFE4E1','E9':'#FFA0B0','E10':'#C06080',
-    'E11':'#F5D0C0','E12':'#F0C0C0','E13':'#8B3A4A','E14':'#FFC8B0','E15':'#D8A0A0',
-    'E16':'#E8C8B0','E17':'#D8B8A0','E18':'#D0A0B0','E19':'#B08080','E20':'#A07880',
-    'E21':'#8A6A6A','E22':'#7A5A5A','E23':'#6A4A5A','E24':'#C8A0B0',
-    // F组 红色系
-    'F1':'#FF6347','F2':'#FF2400','F3':'#FF0000','F4':'#B22222','F5':'#8B0000',
-    'F6':'#6A0A0A','F7':'#4A1010','F8':'#8B4513','F9':'#A05030','F10':'#5A2A1A',
-    'F11':'#FF7F50','F12':'#FFB08A','F13':'#FF6A6A','F14':'#E08060','F15':'#F0A0A0',
-    'F16':'#D08080','F17':'#B06040','F18':'#A06040','F19':'#7A3030','F20':'#5A2020',
-    'F21':'#4A3030','F22':'#6A4A40','F23':'#4A2A2A','F24':'#3A1A1A','F25':'#2A0A0A',
-    // G组 肤色&棕色系
-    'G1':'#FDE8D0','G2':'#F5D0B0','G3':'#E8C8A0','G4':'#D8B080','G5':'#C89870',
-    'G6':'#B87850','G7':'#A06840','G8':'#805030','G9':'#503020','G10':'#F0D0B0',
-    'G11':'#E0C0A0','G12':'#D0B090','G13':'#B09070','G14':'#A08060','G15':'#806050',
-    'G16':'#C0A080','G17':'#B09870','G18':'#A08860','G19':'#807060','G20':'#605040','G21':'#403020',
-    // H组 透明、白、黑、灰色系
-    'H1':'#F0F0F0','H2':'#FFFFFF','H3':'#D0D0D0','H4':'#A0A0A0','H5':'#808080',
-    'H6':'#505050','H7':'#000000','H8':'#C8C8D0','H9':'#A0A0B0','H10':'#707080',
-    'H11':'#D8D0C8','H12':'#C0B8B0','H13':'#A09890','H14':'#C0C8D8','H15':'#A0A8B8',
-    'H16':'#808898','H17':'#C8C0D0','H18':'#B0A8C0','H19':'#9088A0','H20':'#A0B0A0',
-    'H21':'#C8C0A0','H22':'#D0C0C0','H23':'#C0B0A0',
-    // M组 莫兰迪灰调
-    'M1':'#C8C0B0','M2':'#C8C0A0','M3':'#C8B8A0','M4':'#C8A8A0','M5':'#D0B8B0',
-    'M6':'#C8B0C0','M7':'#B0B8C8','M8':'#D0A8A8','M9':'#B8A090','M10':'#D0B8B8',
-    'M11':'#D0C0C8','M12':'#A098A8','M13':'#B8A898','M14':'#A89088','M15':'#A8A8A8',
-    // ★★★ 新增透色系 ★★★
-    'P3':'#80FF80',   // 透绿色
-    'P8':'#FFFF80',   // 透黄色
-    'P10':'#D080FF',  // 透紫色
-    'R3':'#FF8080',   // 透红色
-    'R7':'#8080FF',   // 透蓝色
-    'R11':'#FF80C0',  // 透粉色
-    'T1':'#F0F0F0'    // 透白色
-};
-
-// ================================================================
-// 3. 自定义颜色管理
-// ================================================================
-const CUSTOM_COLOR_KEY = 'perler_custom_colors';
-
-function loadCustomColors() {
-    try {
-        const raw = localStorage.getItem(CUSTOM_COLOR_KEY);
-        if (raw) {
-            const obj = JSON.parse(raw);
-            if (obj && typeof obj === 'object') return obj;
-        }
-    } catch(e) {}
-    return {};
-}
-
-function saveCustomColors(custom) {
-    localStorage.setItem(CUSTOM_COLOR_KEY, JSON.stringify(custom));
-}
-
-let customColors = loadCustomColors();
-
-function getColorForCode(code) {
-    return customColors[code] || DEFAULT_COLOR_MAP[code] || '#CCCCCC';
-}
-
-// ================================================================
-// 4. 颜色选择器（模态框）
-// ================================================================
-let pendingColorCode = null;
-
-function openColorPicker(code) {
-    pendingColorCode = code;
-    const currentColor = getColorForCode(code);
-    document.getElementById('colorPickerInput').value = currentColor;
-    document.getElementById('colorModalTitle').textContent = `🎨 修改 ${code} 颜色`;
-    document.getElementById('colorModal').classList.add('active');
-}
-
-function closeColorModal() {
-    document.getElementById('colorModal').classList.remove('active');
-    pendingColorCode = null;
-}
-
-function confirmColorChange() {
-    if (!pendingColorCode) return;
-    const picker = document.getElementById('colorPickerInput');
-    const newColor = picker.value;
-    customColors[pendingColorCode] = newColor;
-    saveCustomColors(customColors);
-    render();
-    closeColorModal();
-}
-
-// ================================================================
-// 5. 动态色号列表管理
-// ================================================================
-const LIST_KEY = 'perler_color_list';
-
-function loadColorList() {
-    try {
-        const raw = localStorage.getItem(LIST_KEY);
-        if (raw) {
-            const list = JSON.parse(raw);
-            if (Array.isArray(list) && list.length > 0) return list;
-        }
-    } catch(e) {}
-    return [...DEFAULT_CODES];
-}
-
-function saveColorList(list) {
-    localStorage.setItem(LIST_KEY, JSON.stringify(list));
-}
-
-let colorCodes = loadColorList();
-
-// ================================================================
-// 6. 库存数据管理
-// ================================================================
-const STORAGE_KEY = 'perler_221_inventory_v2';
-
-function loadInventory() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed && typeof parsed === 'object') return parsed;
-        }
-    } catch(e) {}
-    const init = {};
-    for (const code of colorCodes) init[code] = { qty: '' };
-    return init;
-}
-
-function saveInventory(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-let inventory = loadInventory();
-
-function syncInventoryWithList() {
-    let changed = false;
-    for (const code of colorCodes) {
-        if (!inventory[code]) {
-            inventory[code] = { qty: '' };
-            changed = true;
-        }
-    }
-    for (const code of Object.keys(inventory)) {
-        if (!colorCodes.includes(code)) {
-            delete inventory[code];
-            changed = true;
-        }
-    }
-    if (changed) saveInventory(inventory);
-}
-
-syncInventoryWithList();
-
-function updateColorList(newList) {
-    colorCodes = newList;
-    saveColorList(colorCodes);
-    syncInventoryWithList();
-    render();
-}
-
-// ================================================================
-// 7. 预警阈值管理
-// ================================================================
-const THRESHOLD_KEY = 'perler_threshold';
-
-function loadThreshold() {
-    try {
-        const val = localStorage.getItem(THRESHOLD_KEY);
-        if (val !== null) {
-            const num = parseInt(val);
-            if (!isNaN(num) && num >= 0) return num;
-        }
-    } catch(e) {}
-    return 100;
-}
-
-function saveThreshold(val) {
-    localStorage.setItem(THRESHOLD_KEY, String(val));
-}
-
-let lowThreshold = loadThreshold();
-
-// ================================================================
-// 8. 排序状态
-// ================================================================
-let sortOrder = 'none';
-
-function toggleSort() {
-    if (sortOrder === 'none') sortOrder = 'asc';
-    else if (sortOrder === 'asc') sortOrder = 'desc';
-    else sortOrder = 'none';
-    render();
-}
-
-// ================================================================
-// 9. 色号增删操作
-// ================================================================
-function openAddModal() {
-    document.getElementById('addColorModal').classList.add('active');
-    document.getElementById('newColorCode').value = '';
-    document.getElementById('newColorName').value = '';
-    document.getElementById('newColorQty').value = '0';
-    document.getElementById('newColorCode').focus();
-}
-
-function closeAddModal() {
-    document.getElementById('addColorModal').classList.remove('active');
-}
-
-function confirmAddColor() {
-    const codeInput = document.getElementById('newColorCode');
-    const nameInput = document.getElementById('newColorName');
-    const qtyInput = document.getElementById('newColorQty');
-    let code = codeInput.value.trim().toUpperCase();
-    const name = nameInput.value.trim() || code;
-    let qty = parseInt(qtyInput.value) || 0;
-    if (qty < 0) qty = 0;
-
-    if (!code) {
-        alert('请输入色号代码，例如 X1');
-        return;
-    }
-    if (colorCodes.includes(code)) {
-        alert(`色号 ${code} 已存在！`);
-        return;
-    }
-    if (!/^[A-Za-z]\d+$/.test(code)) {
-        alert('色号格式应为“字母+数字”，例如 X1');
-        return;
-    }
-
-    const newList = [...colorCodes, code];
-    updateColorList(newList);
-
-    if (!inventory[code]) inventory[code] = { qty: '' };
-    inventory[code].qty = String(qty);
-    saveInventory(inventory);
-
-    closeAddModal();
-    render();
-    alert(`成功添加色号 ${code}（${name}），初始数量 ${qty}`);
-}
-
-function deleteColor(code) {
-    const isDefault = DEFAULT_CODES.includes(code);
-    let msg = `确定要删除色号 ${code} 及其所有库存数据吗？`;
-    if (isDefault) msg += '\n⚠️ 这是预设色号，删除后仍可通过“添加色号”恢复。';
-    if (!confirm(msg)) return;
-    const newList = colorCodes.filter(c => c !== code);
-    updateColorList(newList);
-    render();
-    alert(`色号 ${code} 已删除。`);
-}
-
-// ================================================================
-// 10. 渲染表格
-// ================================================================
-const tbody = document.getElementById('tableBody');
-let currentFilter = '';
-let highlightedRow = null;
-let lowStockMode = false;
-
-function render() {
-    const filter = lowStockMode ? '__LOWSTOCK__' : currentFilter.toLowerCase().trim();
-    let displayCodes = [];
-    for (const code of colorCodes) {
-        const row = inventory[code] || { qty: '' };
-        const qty = row.qty ?? '';
-        const numQty = parseFloat(qty);
-        const hasQty = qty !== '' && !isNaN(numQty);
-        const isLowStock = hasQty && numQty < lowThreshold;
-        if (lowStockMode && !isLowStock) continue;
-        if (!lowStockMode && filter && !code.toLowerCase().includes(filter)) continue;
-        displayCodes.push(code);
-    }
-
-    if (sortOrder !== 'none') {
-        displayCodes.sort((a, b) => {
-            const qtyA = parseFloat(inventory[a]?.qty) || 0;
-            const qtyB = parseFloat(inventory[b]?.qty) || 0;
-            return sortOrder === 'asc' ? qtyA - qtyB : qtyB - qtyA;
-        });
-    }
-
-    const icon = document.getElementById('sortIcon');
-    if (sortOrder === 'none') icon.textContent = '↕';
-    else if (sortOrder === 'asc') icon.textContent = '↑';
-    else icon.textContent = '↓';
-    icon.className = 'sort-icon' + (sortOrder !== 'none' ? ' active' : '');
-
-    let html = '', filledCount = 0, lowStockCount = 0, filteredCodes = [];
-    for (let i = 0; i < displayCodes.length; i++) {
-        const code = displayCodes[i];
-        const row = inventory[code] || { qty: '' };
-        const qty = row.qty ?? '';
-        const hex = getColorForCode(code);
-        const numQty = parseFloat(qty);
-        const hasQty = qty !== '' && !isNaN(numQty);
-        const isLowStock = hasQty && numQty < lowThreshold;
-        if (hasQty && numQty > 0) filledCount++;
-        if (isLowStock) lowStockCount++;
-        const lowClass = isLowStock ? 'low-stock' : '';
-        const highlightClass = (highlightedRow === code) ? 'highlight-row' : '';
-        html += `<tr class="${lowClass} ${highlightClass}" data-code="${code}">
-            <td class="col-check">
-                <input type="checkbox" class="row-checkbox" data-code="${code}" onchange="updateSelectAllState()">
-            </td>
-            <td class="col-id">${i+1}</td>
-            <td class="col-code">
-                <div class="code-cell" onclick="openColorPicker('${code}')">
-                    <span class="color-dot" style="background:${hex};"></span>
-                    <span class="code-text">${code}</span>
+        <!-- 模态框：设置阈值 -->
+        <div class="modal-overlay" id="thresholdModal">
+            <div class="modal-box">
+                <h3>⚙️ 设置库存预警阈值</h3>
+                <label>当数量低于此值时触发预警（橙色高亮）</label>
+                <input type="number" id="thresholdInput" value="100" min="0" step="1">
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeThresholdModal()">取消</button>
+                    <button class="btn btn-primary" onclick="confirmThreshold()">保存</button>
                 </div>
-            </td>
-            <td class="col-qty">
-                <input type="number" min="0" step="1" value="${qty}" 
-                       data-code="${code}" placeholder="0" 
-                       onchange="updateField('${code}', this.value)"
-                       onkeydown="if(event.key==='Enter'){this.blur();}"
-                       ondblclick="this.select()">
-            </td>
-            <td class="col-delete">
-                <button class="btn-delete-row" onclick="deleteColor('${code}')" title="删除此色号">✕</button>
-            </td>
-        </tr>`;
-    }
-    tbody.innerHTML = html;
-    document.getElementById('filled-rows').textContent = filledCount;
-    document.getElementById('total-colors').textContent = colorCodes.length;
-    document.getElementById('low-stock-count').textContent = lowStockCount;
-    document.getElementById('threshold-display').textContent = lowThreshold;
-    const badge = document.getElementById('lowStockBadge');
-    if (lowStockCount > 0) badge.classList.add('warning'); else badge.classList.remove('warning');
-    let totalQty = 0;
-    for (const c of colorCodes) { const r = inventory[c]; if (r && r.qty) { const v = parseFloat(r.qty); if (!isNaN(v) && v>0) totalQty += v; } }
-    document.getElementById('total-count').textContent = totalQty;
-    window._filteredCodes = displayCodes;
-    updateSelectAllState();
-}
+            </div>
+        </div>
 
-function toggleAllCheckboxes(checked) {
-    const checkboxes = document.querySelectorAll('.row-checkbox');
-    checkboxes.forEach(cb => cb.checked = checked);
-}
+        <!-- 模态框：编辑单个格子 -->
+        <div class="modal-overlay" id="gridEditModal">
+            <div class="modal-box">
+                <h3 id="gridEditTitle">🎨 编辑颜色</h3>
+                <div class="grid-edit-row">
+                    <div class="field-group">
+                        <label>选择色号</label>
+                        <div class="filter-select-wrapper" id="filterSelectWrapper">
+                            <input type="text" id="gridEditFilterInput" placeholder="输入色号名称筛选..." autocomplete="off">
+                            <div class="filter-list" id="filterList"></div>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label>或选择颜色</label>
+                        <input type="color" id="gridEditColorPicker" value="#cccccc">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeGridEditModal()">取消</button>
+                    <button class="btn btn-primary" onclick="confirmGridEdit()">确认</button>
+                </div>
+            </div>
+        </div>
 
-function updateSelectAllState() {
-    const checkboxes = document.querySelectorAll('.row-checkbox');
-    const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
-    const selectAll = document.getElementById('selectAll');
-    if (selectAll) selectAll.checked = allChecked;
-}
+        <!-- 模态框：批量修改色号 -->
+        <div class="modal-overlay" id="batchGridEditModal">
+            <div class="modal-box">
+                <h3>📦 批量修改色号</h3>
+                <p style="color:#64748b; margin-bottom:12px;">已选 <span id="batchSelectedCount">0</span> 个格子</p>
+                <div class="grid-edit-row">
+                    <div class="field-group">
+                        <label>选择色号</label>
+                        <div class="filter-select-wrapper" id="batchFilterWrapper">
+                            <input type="text" id="batchFilterInput" placeholder="输入色号名称筛选..." autocomplete="off">
+                            <div class="filter-list" id="batchFilterList"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeBatchGridEditModal()">取消</button>
+                    <button class="btn btn-primary" onclick="confirmBatchGridEdit()">确认</button>
+                </div>
+            </div>
+        </div>
 
-function getSelectedCodes() {
-    const checkboxes = document.querySelectorAll('.row-checkbox:checked');
-    return Array.from(checkboxes).map(cb => cb.dataset.code);
-}
+        <!-- 颜色选择模态框（保留，用于表格色块） -->
+        <div class="color-modal-overlay" id="colorModal">
+            <div class="color-modal-box">
+                <h4 id="colorModalTitle">🎨 选择颜色</h4>
+                <input type="color" id="colorPickerInput" value="#cccccc">
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeColorModal()">取消</button>
+                    <button class="btn btn-primary" onclick="confirmColorChange()">确认</button>
+                </div>
+            </div>
+        </div>
 
-function updateField(code, value) {
-    if (!inventory[code]) inventory[code] = { qty: '' };
-    if (value === '' || value === null || value === undefined) {
-        inventory[code].qty = '';
-    } else {
-        const num = parseFloat(value);
-        if (!isNaN(num) && num >= 0) inventory[code].qty = String(Math.floor(num));
-        else inventory[code].qty = value;
-    }
-    saveInventory(inventory);
-    render();
-}
+        <!-- ===== 拼豆图纸生成面板（布局已调整） ===== -->
+        <div class="collapsible grid-collapsible">
+            <div class="collapsible-header" onclick="toggleGridPanel()">
+                <span class="title">🧩 拼豆图纸生成</span>
+                <span class="status active" id="gridStatus">📂 已展开</span>
+                <button class="toggle-btn" id="gridToggleBtn">收起</button>
+            </div>
+            <div class="collapsible-body open" id="gridBody">
+                <!-- 第一行：图片上传 + 格数 -->
+                <div class="inline-group" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                    <label class="file-label btn btn-purple">
+                        📷 选择图片
+                        <input type="file" id="gridImageUpload" accept="image/*">
+                    </label>
+                    <button class="btn btn-outline" onclick="alert('在页面任意位置按 Ctrl+V 粘贴图片到图纸')">📋 粘贴</button>
+                    <span style="font-size:13px; color:#64748b;">支持 JPG / PNG</span>
+                    <label style="font-weight:500; font-size:14px; display:inline-flex; align-items:center; gap:4px;">
+                        宽度格数：<input type="number" id="gridWidth" value="32" min="1" max="100" style="width:70px; padding:8px; border-radius:8px; border:1px solid #d1d9e6; min-height:44px;">
+                    </label>
+                    <label style="font-weight:500; font-size:14px; display:inline-flex; align-items:center; gap:4px;">
+                        高度格数：<input type="number" id="gridHeight" value="32" min="1" max="100" style="width:70px; padding:8px; border-radius:8px; border:1px solid #d1d9e6; min-height:44px;">
+                    </label>
+                </div>
+                <!-- 第二行：所有操作按钮 -->
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                    
+                    <button class="btn btn-warning" onclick="toggleCropMode()">✂️ 框选</button>
+                    <button class="btn btn-outline" onclick="clearCrop()">取消框选</button>
+					<button class="btn btn-primary" onclick="generateGrid()">⚡ 生成图纸</button>
+					<button class="btn btn-blue" id="batchSelectBtn" onclick="toggleBatchSelectMode()">🔲 批量修改色号</button>
+					<button class="btn btn-success" id="batchModifyBtn" style="display:none;" onclick="openBatchGridEditModal()">📦 批量修改</button>
+                    <button class="btn btn-success" onclick="exportGridImage()">⬇ 导出图片</button>
+                    <button class="btn btn-warning" onclick="exportGridColors()">📊 导出色号</button>
+                    <button class="btn btn-danger" onclick="deductGridInventory()">📉 扣除库存</button>
+                    <button class="btn btn-outline" onclick="clearGrid()">✖ 清空</button>
+                    
+                    
+                </div>
+                <!-- 图片预览 -->
+                <div id="cropContainerWrapper" style="display:none; text-align:center;">
+                    <div class="crop-container" id="cropContainer">
+                        <img id="cropImage" src="" alt="预览图片">
+                        <canvas class="crop-canvas" id="cropCanvas"></canvas>
+                        <div class="crop-hint" id="cropHint">👆 拖拽框选主体区域</div>
+                    </div>
+                </div>
+                <!-- 图纸结果 -->
+                <div id="gridPreviewContainer" style="display:none; margin-top:8px;">
+                    <div class="grid-container" id="gridContainer"></div>
+                    <div class="grid-stats" id="gridStats"></div>
+                </div>
+            </div>
+        </div>
 
-function filterTable() {
-    lowStockMode = false;
-    currentFilter = document.getElementById('searchInput').value;
-    render();
-}
-function toggleLowStockFilter() {
-    lowStockMode = !lowStockMode;
-    if (lowStockMode) {
-        document.getElementById('searchInput').value = '⚠️ 低库存';
-        currentFilter = '';
-    } else {
-        document.getElementById('searchInput').value = '';
-        currentFilter = '';
-    }
-    render();
-}
+        <!-- ===== OCR面板（保持不变） ===== -->
+        <div class="collapsible ocr-collapsible">
+            <div class="collapsible-header" onclick="toggleOcr()">
+                <span class="title">📸 上传消耗清单截图</span>
+                <span class="status" id="ocrStatus">📂 已展开</span>
+                <button class="toggle-btn" id="ocrToggleBtn">收起</button>
+            </div>
+            <div class="collapsible-body open" id="ocrBody">
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                    <label class="file-label btn btn-purple">
+                        📷 选择图片
+                        <input type="file" id="ocrImageUpload" accept="image/*">
+                    </label>
+                    <button class="btn btn-outline" onclick="alert('在页面任意位置按 Ctrl+V 粘贴图片到OCR')">📋 粘贴</button>
+                    <span style="font-size:13px; color:#64748b;">JPG / PNG</span>
+                    <img id="ocrPreview" alt="预览" style="max-height:60px; border-radius:6px; border:1px solid #d1d9e6; display:none; margin-left:4px;">
+                </div>
+                <textarea id="ocrText" placeholder="识别后的文字或手动粘贴文本" style="width:100%; height:80px; border-radius:8px; border:1px solid #d1d9e6; padding:8px 12px; font-family:monospace; font-size:14px; resize:vertical; background:#fff;"></textarea>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                    <button class="btn btn-primary" onclick="parseOcrText()">🔍 解析色号</button>
+                    <button class="btn btn-blue" onclick="parseTextToParsed()">📝 解析文本</button>
+                    <button class="btn btn-success" onclick="applyOcrBatch('subtract')">⬇️ 扣除</button>
+                    <button class="btn btn-warning" onclick="applyOcrBatch('add')">⬆️ 增加</button>
+                    <button class="btn btn-outline" onclick="clearOcr()">✖ 清空</button>
+                    <span style="font-size:13px; color:#64748b;">默认扣除</span>
+                </div>
+                <div class="parsed-list" id="parsedList" style="display:none; max-height:220px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; background:#fafcff;">
+                    <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                        <thead><tr><th>#</th><th>色号</th><th>数量</th><th style="width:44px;">操作</th></tr></thead>
+                        <tbody id="parsedBody"></tbody>
+                    </table>
+                    <div style="margin-top:6px;">
+                        <button class="btn btn-outline btn-sm" onclick="addParsedRow()">➕ 新增行</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-// ================================================================
-// 11. 阈值设置弹窗
-// ================================================================
-function openThresholdModal() {
-    document.getElementById('thresholdModal').classList.add('active');
-    document.getElementById('thresholdInput').value = lowThreshold;
-    document.getElementById('thresholdInput').focus();
-    document.getElementById('thresholdInput').select();
-}
+        <!-- ===== 批量修改面板（原） ===== -->
+        <div class="batch-panel" id="batchPanel">
+            <label>范围：</label>
+            <select id="batchScope">
+                <option value="filtered">当前筛选</option>
+                <option value="all">全部色号</option>
+                <option value="selected" selected>已选色号</option>
+            </select>
+            <label>操作：</label>
+            <select id="batchOperation">
+                <option value="add">增加</option>
+                <option value="subtract">减少</option>
+                <option value="set">设为</option>
+            </select>
+            <input type="number" id="batchValue" value="1" min="0" step="1">
+            <button class="btn btn-primary" onclick="batchModify()">执行</button>
+            <button class="btn btn-outline" onclick="toggleBatchPanel(false)">收起</button>
+        </div>
 
-function closeThresholdModal() {
-    document.getElementById('thresholdModal').classList.remove('active');
-}
+        <!-- ===== 工具栏 ===== -->
+        <div class="toolbar">
+            <div class="stats">
+                <span>📦 <span id="total-count">0</span></span>
+                <span>📋 <span id="filled-rows">0</span>/<span id="total-colors">228</span></span>
+                <span class="low-stock-badge" id="lowStockBadge" onclick="toggleLowStockFilter()">
+                    ⚠️ &lt;<span id="threshold-display">100</span>：<span id="low-stock-count">0</span>种
+                </span>
+                <span class="threshold-setting" onclick="openThresholdModal()">⚙️ 阈值</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%;">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" id="searchInput" placeholder="搜索色号..." oninput="filterTable()">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="openAddModal()">➕ 添加色号</button>
+                    <button class="btn btn-warning" onclick="toggleBatchPanel(true)">📦 批量</button>
+                    <button class="btn btn-success" onclick="exportCSV()">⬇ CSV</button>
+                    <button class="btn btn-primary" onclick="backupData()">💾 备份</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">📂 恢复</button>
+                    <input type="file" id="restoreFileInput" accept=".json" onchange="restoreData(event)">
+                    <button class="btn btn-danger" onclick="resetAll()">↺ 清空</button>
+                </div>
+            </div>
+        </div>
 
-function confirmThreshold() {
-    const input = document.getElementById('thresholdInput');
-    const val = parseInt(input.value);
-    if (isNaN(val) || val < 0) {
-        alert('请输入有效的正整数（≥0）');
-        return;
-    }
-    lowThreshold = val;
-    saveThreshold(val);
-    closeThresholdModal();
-    render();
-    alert(`预警阈值已设置为 ${val}，低于此值的颜色将高亮显示。`);
-}
+        <!-- ===== 主表格 ===== -->
+        <div class="table-wrap" id="tableWrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-check"><input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes(this.checked)"></th>
+                        <th class="col-id">#</th>
+                        <th class="col-code">色号</th>
+                        <th class="col-qty" onclick="toggleSort()">数量 <span class="sort-icon" id="sortIcon">↕</span></th>
+                        <th class="col-delete">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
 
-// ================================================================
-// 12. 批量修改
-// ================================================================
-function toggleBatchPanel(show) {
-    const panel = document.getElementById('batchPanel');
-    if (show === undefined) panel.classList.toggle('active');
-    else if (show) panel.classList.add('active');
-    else panel.classList.remove('active');
-}
+        <div class="footer-note">
+            <span>💡 点击色块选色 · 点击“数量”排序 · 橙色 = 低于阈值 · 图纸支持框选和批量选择</span>
+            <span><kbd>Ctrl+F</kbd> 搜索</span>
+        </div>
+    </div>
 
-function batchModify() {
-    const scope = document.getElementById('batchScope').value;
-    const operation = document.getElementById('batchOperation').value;
-    const val = parseFloat(document.getElementById('batchValue').value);
-    if (isNaN(val) || val < 0) { alert('请输入有效正整数'); return; }
-
-    let targetCodes = [];
-    if (scope === 'filtered') {
-        targetCodes = window._filteredCodes || [];
-        if (targetCodes.length === 0) { alert('当前筛选结果为空，请先搜索出色号。'); return; }
-    } else if (scope === 'all') {
-        targetCodes = colorCodes.slice();
-    } else if (scope === 'selected') {
-        targetCodes = getSelectedCodes();
-        if (targetCodes.length === 0) {
-            alert('请先勾选至少一个色号！');
-            return;
+    <script>
+        // ================================================================
+        // 1. 预设色号（含透色系）
+        // ================================================================
+        const DEFAULT_SERIES = { A: 26, B: 32, C: 29, D: 26, E: 24, F: 25, G: 21, H: 23, M: 15 };
+        const EXTRA_CODES = ['P3', 'P8', 'P10', 'R3', 'R7', 'R11', 'T1'];
+        const DEFAULT_CODES = [];
+        for (const [series, count] of Object.entries(DEFAULT_SERIES)) {
+            for (let i = 1; i <= count; i++) DEFAULT_CODES.push(series + i);
         }
-    }
+        DEFAULT_CODES.push(...EXTRA_CODES);
 
-    if (targetCodes.length === 0) {
-        alert('没有可操作的色号');
-        return;
-    }
+        // ================================================================
+        // 2. 颜色映射
+        // ================================================================
+        const DEFAULT_COLOR_MAP = {
+            'A1': '#F5E6CA','A2': '#FFFACD','A3': '#FFFFE0','A4': '#FFF44F','A5': '#FFD700',
+            'A6': '#FFC68A','A7': '#FFA500','A8': '#FFD27A','A9': '#FFC4A3','A10': '#E8783A',
+            'A11': '#F5C89A','A12': '#D4A050','A13': '#FF8C00','A14': '#FF4500','A15': '#F5DEB3',
+            'A16': '#D2B48C','A17': '#C3A06A','A18': '#CD853F','A19': '#A0522D','A20': '#8B7355',
+            'A21': '#C4B09A','A22': '#9C8A70','A23': '#B87A4A','A24': '#C4B49A','A25': '#A67B5B','A26': '#6B4F3A',
+            'B1': '#D0E84A','B2': '#7CCD7C','B3': '#66CD00','B4': '#00C957','B5': '#00FF7F',
+            'B6': '#3CB371','B7': '#2E8B57','B8': '#228B22','B9': '#006400','B10': '#556B2F',
+            'B11': '#9ACD32','B12': '#98FB98','B13': '#AFEEEE','B14': '#00CED1','B15': '#6B8E23',
+            'B16': '#8FBC8F','B17': '#C0D890','B18': '#BDB76B','B19': '#6B6B3A','B20': '#4A5D23',
+            'B21': '#B0E0E6','B22': '#E0FFFF','B23': '#C4C88A','B24': '#E0F0E0','B25': '#C0D0C0',
+            'B26': '#8FBC8F','B27': '#7A9A7A','B28': '#6A8C6A','B29': '#4A6A4A','B30': '#3A5A3A','B31': '#2A4A2A','B32': '#1A3A1A',
+            'C1': '#87CEEB','C2': '#00BFFF','C3': '#00B2EE','C4': '#1E90FF','C5': '#4169E1',
+            'C6': '#0000CD','C7': '#00008B','C8': '#191970','C9': '#0A0A3A','C10': '#4A6A9A',
+            'C11': '#B0C4DE','C12': '#F0F8FF','C13': '#C0D8E8','C14': '#D0E4F0','C15': '#8AB8D8',
+            'C16': '#6A8CB0','C17': '#4A6A8A','C18': '#3A5A7A','C19': '#6A7A8A','C20': '#7A8A9A',
+            'C21': '#A0B8C8','C22': '#C0D8E0','C23': '#5A7A8A','C24': '#4A6A7A','C25': '#B0C8D0',
+            'C26': '#3A5A6A','C27': '#2A4A5A','C28': '#1A3A4A','C29': '#0A2A3A',
+            'D1': '#C8A2C8','D2': '#D8B4D8','D3': '#9370DB','D4': '#8A2BE2','D5': '#9B30FF',
+            'D6': '#7A2D8A','D7': '#4A0A5A','D8': '#2A0A3A','D9': '#4A1A2A','D10': '#6A4A7A',
+            'D11': '#C0B0C0','D12': '#D0C0D0','D13': '#A8A0B0','D14': '#B09AB0','D15': '#8A7A8A',
+            'D16': '#6A5A6A','D17': '#5A4A5A','D18': '#E0C8D0','D19': '#D0B8C0','D20': '#A08890',
+            'D21': '#908080','D22': '#C8B8C0','D23': '#B0A8B0','D24': '#A098A0','D25': '#8A7A90','D26': '#C0B0C8',
+            'E1': '#FFDAB9','E2': '#FFB6C1','E3': '#FF69B4','E4': '#FF1493','E5': '#DB7093',
+            'E6': '#C71585','E7': '#8B0A50','E8': '#FFE4E1','E9': '#FFA0B0','E10': '#C06080',
+            'E11': '#F5D0C0','E12': '#F0C0C0','E13': '#8B3A4A','E14': '#FFC8B0','E15': '#D8A0A0',
+            'E16': '#E8C8B0','E17': '#D8B8A0','E18': '#D0A0B0','E19': '#B08080','E20': '#A07880',
+            'E21': '#8A6A6A','E22': '#7A5A5A','E23': '#6A4A5A','E24': '#C8A0B0',
+            'F1': '#FF6347','F2': '#FF2400','F3': '#FF0000','F4': '#B22222','F5': '#8B0000',
+            'F6': '#6A0A0A','F7': '#4A1010','F8': '#8B4513','F9': '#A05030','F10': '#5A2A1A',
+            'F11': '#FF7F50','F12': '#FFB08A','F13': '#FF6A6A','F14': '#E08060','F15': '#F0A0A0',
+            'F16': '#D08080','F17': '#B06040','F18': '#A06040','F19': '#7A3030','F20': '#5A2020',
+            'F21': '#4A3030','F22': '#6A4A40','F23': '#4A2A2A','F24': '#3A1A1A','F25': '#2A0A0A',
+            'G1': '#FDE8D0','G2': '#F5D0B0','G3': '#E8C8A0','G4': '#D8B080','G5': '#C89870',
+            'G6': '#B87850','G7': '#A06840','G8': '#805030','G9': '#503020','G10': '#F0D0B0',
+            'G11': '#E0C0A0','G12': '#D0B090','G13': '#B09070','G14': '#A08060','G15': '#806050',
+            'G16': '#C0A080','G17': '#B09870','G18': '#A08860','G19': '#807060','G20': '#605040','G21': '#403020',
+            'H1': '#F0F0F0','H2': '#FFFFFF','H3': '#D0D0D0','H4': '#A0A0A0','H5': '#808080',
+            'H6': '#505050','H7': '#000000','H8': '#C8C8D0','H9': '#A0A0B0','H10': '#707080',
+            'H11': '#D8D0C8','H12': '#C0B8B0','H13': '#A09890','H14': '#C0C8D8','H15': '#A0A8B8',
+            'H16': '#808898','H17': '#C8C0D0','H18': '#B0A8C0','H19': '#9088A0','H20': '#A0B0A0',
+            'H21': '#C8C0A0','H22': '#D0C0C0','H23': '#C0B0A0',
+            'M1': '#C8C0B0','M2': '#C8C0A0','M3': '#C8B8A0','M4': '#C8A8A0','M5': '#D0B8B0',
+            'M6': '#C8B0C0','M7': '#B0B8C8','M8': '#D0A8A8','M9': '#B8A090','M10': '#D0B8B8',
+            'M11': '#D0C0C8','M12': '#A098A8','M13': '#B8A898','M14': '#A89088','M15': '#A8A8A8',
+            'P3': '#80FF80','P8': '#FFFF80','P10': '#D080FF','R3': '#FF8080','R7': '#8080FF','R11': '#FF80C0','T1': '#F0F0F0'
+        };
 
-    let confirmMsg = `对 ${targetCodes.length} 个色号“`;
-    if (operation === 'add') confirmMsg += `增加 ${val}`;
-    else if (operation === 'subtract') confirmMsg += `减少 ${val}`;
-    else confirmMsg += `设为 ${val}`;
-    confirmMsg += '” 确认？';
-    if (!confirm(confirmMsg)) return;
+        // ================================================================
+        // 3. 自定义颜色
+        // ================================================================
+        const CUSTOM_COLOR_KEY = 'perler_custom_colors';
 
-    for (const code of targetCodes) {
-        if (!inventory[code]) inventory[code] = { qty: '' };
-        let current = parseFloat(inventory[code].qty) || 0;
-        let newQty = current;
-        if (operation === 'add') newQty = current + val;
-        else if (operation === 'subtract') { newQty = current - val; if (newQty < 0) newQty = 0; }
-        else newQty = val;
-        inventory[code].qty = String(Math.floor(newQty));
-    }
-    saveInventory(inventory);
-    render();
-    alert(`完成！更新 ${targetCodes.length} 个色号。`);
-}
+        function loadCustomColors() {
+            try {
+                const raw = localStorage.getItem(CUSTOM_COLOR_KEY);
+                if (raw) {
+                    const obj = JSON.parse(raw);
+                    if (obj && typeof obj === 'object') return obj;
+                }
+            } catch (e) {}
+            return {};
+        }
 
-function resetAll() {
-    if (!confirm('清空所有数量？')) return;
-    for (const code of colorCodes) { if (!inventory[code]) inventory[code] = { qty: '' }; inventory[code].qty = ''; }
-    saveInventory(inventory);
-    render();
-}
-function exportCSV() {
-    let csv = '\uFEFF#,色号,数量(粒)\n';
-    for (let i=0;i<colorCodes.length;i++) {
-        const code = colorCodes[i];
-        const row = inventory[code] || { qty: '' };
-        csv += (i+1)+','+code+','+(row.qty??'')+'\n';
-    }
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = '拼豆库存表.csv';
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-}
+        function saveCustomColors(custom) {
+            localStorage.setItem(CUSTOM_COLOR_KEY, JSON.stringify(custom));
+        }
+        let customColors = loadCustomColors();
 
-// ================================================================
-// 13. 备份与恢复
-// ================================================================
-function backupData() {
-    const backup = {
-        version: '2.1',
-        timestamp: new Date().toISOString(),
-        colorList: colorCodes,
-        inventory: inventory,
-        threshold: lowThreshold,
-        customColors: customColors,
-    };
-    const json = JSON.stringify(backup, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `拼豆库存备份_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-}
+        function getColorForCode(code) {
+            return customColors[code] || DEFAULT_COLOR_MAP[code] || '#CCCCCC';
+        }
 
-function restoreData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        try {
-            const backup = JSON.parse(ev.target.result);
-            if (!backup.inventory || typeof backup.inventory !== 'object') {
-                alert('无效的备份文件！');
-                return;
-            }
-            if (!confirm(`确认恢复备份？\n备份时间：${backup.timestamp || '未知'}`)) return;
-            if (backup.colorList && Array.isArray(backup.colorList)) {
-                updateColorList(backup.colorList);
+        function setColorForCode(code, hex) {
+            if (hex) {
+                customColors[code] = hex;
             } else {
-                alert('⚠️ 此备份不含色号列表，将使用当前色号列表，库存数据会合并。');
+                delete customColors[code];
             }
-            inventory = backup.inventory;
+            saveCustomColors(customColors);
+            render();
+        }
+
+        // ================================================================
+        // 4. 色号列表 & 库存
+        // ================================================================
+        const LIST_KEY = 'perler_color_list';
+
+        function loadColorList() {
+            try {
+                const raw = localStorage.getItem(LIST_KEY);
+                if (raw) {
+                    const list = JSON.parse(raw);
+                    if (Array.isArray(list) && list.length > 0) return list;
+                }
+            } catch (e) {}
+            return [...DEFAULT_CODES];
+        }
+
+        function saveColorList(list) {
+            localStorage.setItem(LIST_KEY, JSON.stringify(list));
+        }
+        let colorCodes = loadColorList();
+
+        const STORAGE_KEY = 'perler_221_inventory_v2';
+
+        function loadInventory() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') return parsed;
+                }
+            } catch (e) {}
+            const init = {};
+            for (const code of colorCodes) init[code] = { qty: '' };
+            return init;
+        }
+
+        function saveInventory(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        let inventory = loadInventory();
+
+        function syncInventoryWithList() {
+            let changed = false;
+            for (const code of colorCodes) {
+                if (!inventory[code]) {
+                    inventory[code] = { qty: '' };
+                    changed = true;
+                }
+            }
+            for (const code of Object.keys(inventory)) {
+                if (!colorCodes.includes(code)) {
+                    delete inventory[code];
+                    changed = true;
+                }
+            }
+            if (changed) saveInventory(inventory);
+        }
+        syncInventoryWithList();
+
+        function updateColorList(newList) {
+            colorCodes = newList;
+            saveColorList(colorCodes);
+            syncInventoryWithList();
+            render();
+        }
+
+        // ================================================================
+        // 5. 阈值
+        // ================================================================
+        const THRESHOLD_KEY = 'perler_threshold';
+
+        function loadThreshold() {
+            try {
+                const val = localStorage.getItem(THRESHOLD_KEY);
+                if (val !== null) {
+                    const num = parseInt(val);
+                    if (!isNaN(num) && num >= 0) return num;
+                }
+            } catch (e) {}
+            return 100;
+        }
+
+        function saveThreshold(val) {
+            localStorage.setItem(THRESHOLD_KEY, String(val));
+        }
+        let lowThreshold = loadThreshold();
+
+        // ================================================================
+        // 6. 排序
+        // ================================================================
+        let sortOrder = 'none';
+
+        function toggleSort() {
+            if (sortOrder === 'none') sortOrder = 'asc';
+            else if (sortOrder === 'asc') sortOrder = 'desc';
+            else sortOrder = 'none';
+            render();
+        }
+
+        // ================================================================
+        // 7. 色号增删
+        // ================================================================
+        function openAddModal() {
+            document.getElementById('addColorModal').classList.add('active');
+            document.getElementById('newColorCode').value = '';
+            document.getElementById('newColorName').value = '';
+            document.getElementById('newColorQty').value = '0';
+            document.getElementById('newColorCode').focus();
+        }
+
+        function closeAddModal() {
+            document.getElementById('addColorModal').classList.remove('active');
+        }
+
+        function confirmAddColor() {
+            const codeInput = document.getElementById('newColorCode');
+            const nameInput = document.getElementById('newColorName');
+            const qtyInput = document.getElementById('newColorQty');
+            let code = codeInput.value.trim().toUpperCase();
+            const name = nameInput.value.trim() || code;
+            let qty = parseInt(qtyInput.value) || 0;
+            if (qty < 0) qty = 0;
+            if (!code) { alert('请输入色号代码，例如 X1'); return; }
+            if (colorCodes.includes(code)) { alert(`色号 ${code} 已存在！`); return; }
+            if (!/^[A-Za-z]\d+$/.test(code)) { alert('色号格式应为“字母+数字”，例如 X1'); return; }
+            const newList = [...colorCodes, code];
+            updateColorList(newList);
+            if (!inventory[code]) inventory[code] = { qty: '' };
+            inventory[code].qty = String(qty);
             saveInventory(inventory);
-            if (backup.threshold !== undefined) {
-                lowThreshold = backup.threshold;
-                saveThreshold(lowThreshold);
+            closeAddModal();
+            render();
+            alert(`成功添加色号 ${code}（${name}），初始数量 ${qty}`);
+        }
+
+        function deleteColor(code) {
+            const isDefault = DEFAULT_CODES.includes(code);
+            let msg = `确定要删除色号 ${code} 及其所有库存数据吗？`;
+            if (isDefault) msg += '\n⚠️ 这是预设色号，删除后仍可通过“添加色号”恢复。';
+            if (!confirm(msg)) return;
+            const newList = colorCodes.filter(c => c !== code);
+            updateColorList(newList);
+            render();
+            alert(`色号 ${code} 已删除。`);
+        }
+
+        // ================================================================
+        // 8. 渲染
+        // ================================================================
+        const tbody = document.getElementById('tableBody');
+        let currentFilter = '';
+        let highlightedRow = null;
+        let lowStockMode = false;
+
+        function render() {
+            const filter = lowStockMode ? '__LOWSTOCK__' : currentFilter.toLowerCase().trim();
+            let displayCodes = [];
+            for (const code of colorCodes) {
+                const row = inventory[code] || { qty: '' };
+                const qty = row.qty ?? '';
+                const numQty = parseFloat(qty);
+                const hasQty = qty !== '' && !isNaN(numQty);
+                const isLowStock = hasQty && numQty < lowThreshold;
+                if (lowStockMode && !isLowStock) continue;
+                if (!lowStockMode && filter && !code.toLowerCase().includes(filter)) continue;
+                displayCodes.push(code);
             }
-            if (backup.customColors && typeof backup.customColors === 'object') {
-                customColors = backup.customColors;
-                saveCustomColors(customColors);
+            if (sortOrder !== 'none') {
+                displayCodes.sort((a, b) => {
+                    const qtyA = parseFloat(inventory[a]?.qty) || 0;
+                    const qtyB = parseFloat(inventory[b]?.qty) || 0;
+                    return sortOrder === 'asc' ? qtyA - qtyB : qtyB - qtyA;
+                });
+            }
+            const icon = document.getElementById('sortIcon');
+            if (sortOrder === 'none') icon.textContent = '↕';
+            else if (sortOrder === 'asc') icon.textContent = '↑';
+            else icon.textContent = '↓';
+            icon.className = 'sort-icon' + (sortOrder !== 'none' ? ' active' : '');
+
+            let html = '',
+                filledCount = 0,
+                lowStockCount = 0,
+                filteredCodes = [];
+            for (let i = 0; i < displayCodes.length; i++) {
+                const code = displayCodes[i];
+                const row = inventory[code] || { qty: '' };
+                const qty = row.qty ?? '';
+                const hex = getColorForCode(code);
+                const numQty = parseFloat(qty);
+                const hasQty = qty !== '' && !isNaN(numQty);
+                const isLowStock = hasQty && numQty < lowThreshold;
+                if (hasQty && numQty > 0) filledCount++;
+                if (isLowStock) lowStockCount++;
+                const lowClass = isLowStock ? 'low-stock' : '';
+                const highlightClass = (highlightedRow === code) ? 'highlight-row' : '';
+                html += `<tr class="${lowClass} ${highlightClass}" data-code="${code}">
+                    <td class="col-check">
+                        <input type="checkbox" class="row-checkbox" data-code="${code}" onchange="updateSelectAllState()">
+                    </td>
+                    <td class="col-id">${i + 1}</td>
+                    <td class="col-code">
+                        <div class="code-cell" onclick="openColorPickerForCode('${code}')">
+                            <span class="color-dot" style="background:${hex};"></span>
+                            <span class="code-text">${code}</span>
+                        </div>
+                    </td>
+                    <td class="col-qty">
+                        <input type="number" min="0" step="1" value="${qty}" 
+                               data-code="${code}" placeholder="0" 
+                               onchange="updateField('${code}', this.value)"
+                               onkeydown="if(event.key==='Enter'){this.blur();}"
+                               ondblclick="this.select()">
+                    </td>
+                    <td class="col-delete">
+                        <button class="btn-delete-row" onclick="deleteColor('${code}')" title="删除此色号">✕</button>
+                    </td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+            document.getElementById('filled-rows').textContent = filledCount;
+            document.getElementById('total-colors').textContent = colorCodes.length;
+            document.getElementById('low-stock-count').textContent = lowStockCount;
+            document.getElementById('threshold-display').textContent = lowThreshold;
+            const badge = document.getElementById('lowStockBadge');
+            if (lowStockCount > 0) badge.classList.add('warning');
+            else badge.classList.remove('warning');
+            let totalQty = 0;
+            for (const c of colorCodes) { const r = inventory[c]; if (r && r.qty) { const v = parseFloat(r.qty); if (!isNaN(v) && v > 0) totalQty += v; } }
+            document.getElementById('total-count').textContent = totalQty;
+            window._filteredCodes = displayCodes;
+            updateSelectAllState();
+        }
+
+        function toggleAllCheckboxes(checked) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = checked);
+        }
+
+        function updateSelectAllState() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) selectAll.checked = allChecked;
+        }
+
+        function getSelectedCodes() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.dataset.code);
+        }
+
+        function updateField(code, value) {
+            if (!inventory[code]) inventory[code] = { qty: '' };
+            if (value === '' || value === null || value === undefined) {
+                inventory[code].qty = '';
+            } else {
+                const num = parseFloat(value);
+                if (!isNaN(num) && num >= 0) inventory[code].qty = String(Math.floor(num));
+                else inventory[code].qty = value;
+            }
+            saveInventory(inventory);
+            render();
+        }
+
+        function filterTable() {
+            lowStockMode = false;
+            currentFilter = document.getElementById('searchInput').value;
+            render();
+        }
+
+        function toggleLowStockFilter() {
+            lowStockMode = !lowStockMode;
+            if (lowStockMode) {
+                document.getElementById('searchInput').value = '⚠️ 低库存';
+                currentFilter = '';
+            } else {
+                document.getElementById('searchInput').value = '';
+                currentFilter = '';
             }
             render();
-            alert('数据恢复成功！');
-        } catch(e) {
-            alert('文件解析失败，请确保是有效的备份文件。');
         }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-}
 
-// ================================================================
-// 14. OCR 识别与解析（略，与之前相同）
-// ================================================================
-let parsedItems = [];
-let ocrOpen = true;
+        // ================================================================
+        // 9. 颜色选择（表格色块）
+        // ================================================================
+        let pendingColorCode = null;
 
-function toggleOcr() {
-    const body = document.getElementById('ocrBody');
-    const btn = document.getElementById('ocrToggleBtn');
-    const status = document.getElementById('ocrStatus');
-    ocrOpen = !ocrOpen;
-    if (ocrOpen) {
-        body.classList.add('open');
-        btn.textContent = '收起';
-        status.textContent = '📂 已展开';
-    } else {
-        body.classList.remove('open');
-        btn.textContent = '展开';
-        status.textContent = '⚡ 点击展开';
-    }
-}
-
-function handleImageFile(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        document.getElementById('ocrPreview').src = ev.target.result;
-        document.getElementById('ocrPreview').style.display = 'block';
-        document.getElementById('ocrStatus').textContent = '识别中...';
-        (async () => {
-            try {
-                const result = await Tesseract.recognize(ev.target.result, 'eng+chi_sim', {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            document.getElementById('ocrStatus').textContent = `识别中 ${Math.round(m.progress*100)}%`;
-                        }
-                    }
-                });
-                const text = result.data.text;
-                document.getElementById('ocrText').value = text;
-                document.getElementById('ocrStatus').textContent = '识别完成，点击“解析色号”';
-                parseOcrText();
-            } catch(err) {
-                alert('OCR识别失败：'+err.message);
-                document.getElementById('ocrStatus').textContent = '识别失败';
-            }
-        })();
-    };
-    reader.readAsDataURL(file);
-}
-
-document.getElementById('ocrImageUpload').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    handleImageFile(file);
-    this.value = '';
-});
-
-document.addEventListener('paste', function(e) {
-    const items = e.clipboardData && e.clipboardData.items;
-    if (!items) return;
-    let imageFile = null;
-    for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-            imageFile = items[i].getAsFile();
-            break;
+        function openColorPickerForCode(code) {
+            pendingColorCode = code;
+            const currentColor = getColorForCode(code);
+            document.getElementById('colorPickerInput').value = currentColor;
+            document.getElementById('colorModalTitle').textContent = `🎨 修改 ${code} 颜色`;
+            document.getElementById('colorModal').classList.add('active');
         }
-    }
-    if (imageFile) {
-        e.preventDefault();
-        if (!ocrOpen) toggleOcr();
-        handleImageFile(imageFile);
-        document.getElementById('ocrStatus').textContent = '粘贴图片成功，识别中...';
-    }
-});
 
-function parseOcrText() {
-    const text = document.getElementById('ocrText').value;
-    const lines = text.split(/\r?\n/);
-    const pattern1 = /([A-Za-z]\d+)\s*[\(（]?\s*(\d+)\s*[\)）]?/g;
-    const pattern2 = /(\d+)\s*[\(（]?\s*([A-Za-z]\d+)\s*[\)）]?/g;
-    let rawMatches = [];
-    let m;
-    for (const line of lines) {
-        let found = false;
-        while ((m = pattern1.exec(line)) !== null) {
-            rawMatches.push({ code: m[1].toUpperCase(), qty: parseInt(m[2]) });
-            found = true;
+        function closeColorModal() {
+            document.getElementById('colorModal').classList.remove('active');
+            pendingColorCode = null;
         }
-        if (!found) {
-            while ((m = pattern2.exec(line)) !== null) {
-                rawMatches.push({ code: m[2].toUpperCase(), qty: parseInt(m[1]) });
-                found = true;
-            }
+
+        function confirmColorChange() {
+            if (!pendingColorCode) return;
+            const picker = document.getElementById('colorPickerInput');
+            const newColor = picker.value;
+            customColors[pendingColorCode] = newColor;
+            saveCustomColors(customColors);
+            render();
+            closeColorModal();
         }
-    }
-    if (rawMatches.length === 0) {
-        alert('未识别出任何色号，请检查文字或手动添加。');
-        parsedItems = [];
-        showParsedList();
-        return;
-    }
 
-    const codeCount = {};
-    const codeTotal = {};
-    for (const item of rawMatches) {
-        if (codeCount[item.code]) {
-            codeCount[item.code]++;
-            codeTotal[item.code] += item.qty;
-        } else {
-            codeCount[item.code] = 1;
-            codeTotal[item.code] = item.qty;
+        // ================================================================
+        // 10. 阈值弹窗
+        // ================================================================
+        function openThresholdModal() {
+            document.getElementById('thresholdModal').classList.add('active');
+            document.getElementById('thresholdInput').value = lowThreshold;
+            document.getElementById('thresholdInput').focus();
+            document.getElementById('thresholdInput').select();
         }
-    }
-    const duplicates = Object.keys(codeCount).filter(code => codeCount[code] > 1);
-    if (duplicates.length > 0) {
-        let msg = '🔁 识别到以下重复色号，已自动合并数量：\n';
-        for (const code of duplicates) {
-            msg += `  ${code}: 出现 ${codeCount[code]} 次，合并后数量 ${codeTotal[code]}\n`;
+
+        function closeThresholdModal() {
+            document.getElementById('thresholdModal').classList.remove('active');
         }
-        alert(msg);
-    }
 
-    const map = new Map();
-    for (const item of rawMatches) {
-        if (map.has(item.code)) map.set(item.code, map.get(item.code) + item.qty);
-        else map.set(item.code, item.qty);
-    }
-    parsedItems = Array.from(map.entries()).map(([code, qty]) => ({ code, qty }));
-    showParsedList();
-}
-
-function showParsedList() {
-    const tbody = document.getElementById('parsedBody');
-    let html = '';
-    parsedItems.forEach((item, idx) => {
-        const code = item.code;
-        const hex = getColorForCode(code);
-        html += `<tr>
-            <td class="row-index">${idx+1}</td>
-            <td>
-                <div class="parsed-code-cell">
-                    <span class="color-dot" style="background:${hex};"></span>
-                    <input class="code-input" type="text" value="${code}" data-idx="${idx}" onchange="updateParsedItem(${idx}, 'code', this.value)">
-                </div>
-            </td>
-            <td><input type="number" min="0" step="1" value="${item.qty}" data-idx="${idx}" onchange="updateParsedItem(${idx}, 'qty', parseInt(this.value)||0)"></td>
-            <td><button class="delete-btn" onclick="deleteParsedRow(${idx})" title="删除此行">✕</button></td>
-        </tr>`;
-    });
-    tbody.innerHTML = html;
-    document.getElementById('parsedList').style.display = 'block';
-    if (!ocrOpen) toggleOcr();
-}
-
-function updateParsedItem(idx, field, value) {
-    if (field === 'code') {
-        parsedItems[idx].code = value.toUpperCase();
-        checkParsedDuplicate(true);
-    } else if (field === 'qty') {
-        parsedItems[idx].qty = Math.max(0, parseInt(value) || 0);
-    }
-}
-
-function deleteParsedRow(idx) {
-    if (!confirm(`确定删除第 ${idx+1} 行吗？`)) return;
-    parsedItems.splice(idx, 1);
-    showParsedList();
-}
-
-function addParsedRow() {
-    parsedItems.push({ code: '', qty: 0 });
-    showParsedList();
-    const inputs = document.querySelectorAll('#parsedBody .code-input');
-    if (inputs.length > 0) {
-        const last = inputs[inputs.length - 1];
-        last.focus();
-        last.select();
-    }
-    checkParsedDuplicate(true);
-}
-
-function clearOcr() {
-    document.getElementById('ocrText').value = '';
-    document.getElementById('ocrPreview').style.display = 'none';
-    document.getElementById('ocrPreview').src = '';
-    document.getElementById('parsedList').style.display = 'none';
-    document.getElementById('ocrStatus').textContent = '📂 已展开';
-    parsedItems = [];
-    if (!ocrOpen) toggleOcr();
-}
-
-function checkParsedDuplicate(showAlert = true) {
-    const codeMap = new Map();
-    const dupList = [];
-    parsedItems.forEach(item => {
-        const c = (item.code || "").trim().toUpperCase();
-        if (!c) return;
-        if (codeMap.has(c)) dupList.push(c);
-        else codeMap.set(c, true);
-    });
-    const uniqDup = [...new Set(dupList)];
-    if (uniqDup.length > 0 && showAlert) {
-        alert(`⚠️重复色号：${uniqDup.join(', ')}，请处理后再批量执行`);
-    }
-    return uniqDup.length > 0;
-}
-
-function applyOcrBatch(mode) {
-    if (parsedItems.length === 0) {
-        alert('列表为空，请先上传图片并解析，或手动新增行。');
-        return;
-    }
-    if(checkParsedDuplicate(true)) return;
-    const empty = parsedItems.filter(item => item.code.trim() === '');
-    if (empty.length > 0) {
-        alert(`存在 ${empty.length} 个空色号，请填写完整后再执行。`);
-        return;
-    }
-    const unknown = parsedItems.filter(item => !colorCodes.includes(item.code));
-    if (unknown.length > 0) {
-        const codes = unknown.map(i=>i.code).join(', ');
-        if (!confirm(`检测到以下色号不在列表中：${codes}\n是否自动添加这些色号？`)) {
-            parsedItems = parsedItems.filter(item => colorCodes.includes(item.code));
-            if (parsedItems.length === 0) {
-                alert('没有可操作的色号。');
+        function confirmThreshold() {
+            const input = document.getElementById('thresholdInput');
+            const val = parseInt(input.value);
+            if (isNaN(val) || val < 0) {
+                alert('请输入有效的正整数（≥0）');
                 return;
             }
-        } else {
-            const newList = [...colorCodes];
-            for (const item of unknown) {
-                if (!newList.includes(item.code)) newList.push(item.code);
+            lowThreshold = val;
+            saveThreshold(val);
+            closeThresholdModal();
+            render();
+            alert(`预警阈值已设置为 ${val}，低于此值的颜色将高亮显示。`);
+        }
+
+        // ================================================================
+        // 11. 批量修改（原）
+        // ================================================================
+        function toggleBatchPanel(show) {
+            const panel = document.getElementById('batchPanel');
+            if (show === undefined) panel.classList.toggle('active');
+            else if (show) panel.classList.add('active');
+            else panel.classList.remove('active');
+        }
+
+        function batchModify() {
+            const scope = document.getElementById('batchScope').value;
+            const operation = document.getElementById('batchOperation').value;
+            const val = parseFloat(document.getElementById('batchValue').value);
+            if (isNaN(val) || val < 0) { alert('请输入有效正整数'); return; }
+            let targetCodes = [];
+            if (scope === 'filtered') {
+                targetCodes = window._filteredCodes || [];
+                if (targetCodes.length === 0) { alert('当前筛选结果为空，请先搜索出色号。'); return; }
+            } else if (scope === 'all') {
+                targetCodes = colorCodes.slice();
+            } else if (scope === 'selected') {
+                targetCodes = getSelectedCodes();
+                if (targetCodes.length === 0) { alert('请先勾选至少一个色号！'); return; }
             }
-            updateColorList(newList);
+            if (targetCodes.length === 0) { alert('没有可操作的色号'); return; }
+            let confirmMsg = `对 ${targetCodes.length} 个色号“`;
+            if (operation === 'add') confirmMsg += `增加 ${val}`;
+            else if (operation === 'subtract') confirmMsg += `减少 ${val}`;
+            else confirmMsg += `设为 ${val}`;
+            confirmMsg += '” 确认？';
+            if (!confirm(confirmMsg)) return;
+            for (const code of targetCodes) {
+                if (!inventory[code]) inventory[code] = { qty: '' };
+                let current = parseFloat(inventory[code].qty) || 0;
+                let newQty = current;
+                if (operation === 'add') newQty = current + val;
+                else if (operation === 'subtract') { newQty = current - val; if (newQty < 0) newQty = 0; }
+                else newQty = val;
+                inventory[code].qty = String(Math.floor(newQty));
+            }
+            saveInventory(inventory);
+            render();
+            alert(`完成！更新 ${targetCodes.length} 个色号。`);
         }
-    }
-    const action = mode === 'subtract' ? '扣除' : '增加';
-    if (!confirm(`确认对 ${parsedItems.length} 个色号执行“${action}”操作吗？\n（数量将${mode==='subtract'?'从库存中减去':'增加到库存中'}）`)) return;
-    let updatedCount = 0;
-    for (const item of parsedItems) {
-        const code = item.code;
-        const qty = item.qty;
-        if (qty === 0) continue;
-        if (!inventory[code]) inventory[code] = { qty: '' };
-        let current = parseFloat(inventory[code].qty) || 0;
-        let newQty;
-        if (mode === 'subtract') {
-            newQty = current - qty;
-            if (newQty < 0) newQty = 0;
-        } else {
-            newQty = current + qty;
+
+        function resetAll() {
+            if (!confirm('清空所有数量？')) return;
+            for (const code of colorCodes) { if (!inventory[code]) inventory[code] = { qty: '' };
+                inventory[code].qty = ''; }
+            saveInventory(inventory);
+            render();
         }
-        inventory[code].qty = String(Math.floor(newQty));
-        updatedCount++;
-    }
-    saveInventory(inventory);
-    render();
-    alert(`${action}完成！更新了 ${updatedCount} 个色号。`);
-    clearOcr();
-}
 
-// ================================================================
-// 15. 文本解析
-// ================================================================
-function parseTextToParsed() {
-    const textDom = document.getElementById('ocrText');
-    if (!textDom) {
-        alert("错误：没有找到文本输入框");
-        return;
-    }
-
-    const text = textDom.value;
-    if (!text.trim()) {
-        alert("请先粘贴文本 / OCR识别图片到文本框");
-        return;
-    }
-
-    const lines = text.split('\n');
-    const tempList = [];
-
-    for (let line of lines) {
-        line = line.trim();
-        if (!line) continue;
-
-        let match = line.match(/([A-Za-z]\d+)\s*[（(]\s*(\d+)\s*[）)]/);
-        if (match) {
-            tempList.push({ code: match[1].toUpperCase(), qty: parseInt(match[2]) });
-            continue;
+        function exportCSV() {
+            let csv = '\uFEFF#,色号,数量(粒)\n';
+            for (let i = 0; i < colorCodes.length; i++) {
+                const code = colorCodes[i];
+                const row = inventory[code] || { qty: '' };
+                csv += (i + 1) + ',' + code + ',' + (row.qty ?? '') + '\n';
+            }
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '拼豆库存表.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
         }
-        const parts = line.split(/[\s\t:：]+/);
-        if (parts.length >= 2) {
-            const code = parts[0].trim().toUpperCase();
-            const qty = parseInt(parts[1]);
-            if (code && !isNaN(qty) && qty > 0) {
-                tempList.push({ code, qty });
-                continue;
+
+        // ================================================================
+        // 12. 备份恢复
+        // ================================================================
+        function backupData() {
+            const backup = {
+                version: '2.1',
+                timestamp: new Date().toISOString(),
+                colorList: colorCodes,
+                inventory: inventory,
+                threshold: lowThreshold,
+                customColors: customColors,
+            };
+            const json = JSON.stringify(backup, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `拼豆库存备份_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+
+        function restoreData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const backup = JSON.parse(ev.target.result);
+                    if (!backup.inventory || typeof backup.inventory !== 'object') {
+                        alert('无效的备份文件！');
+                        return;
+                    }
+                    if (!confirm(`确认恢复备份？\n备份时间：${backup.timestamp || '未知'}`)) return;
+                    if (backup.colorList && Array.isArray(backup.colorList)) {
+                        updateColorList(backup.colorList);
+                    } else {
+                        alert('⚠️ 此备份不含色号列表，将使用当前色号列表，库存数据会合并。');
+                    }
+                    inventory = backup.inventory;
+                    saveInventory(inventory);
+                    if (backup.threshold !== undefined) {
+                        lowThreshold = backup.threshold;
+                        saveThreshold(lowThreshold);
+                    }
+                    if (backup.customColors && typeof backup.customColors === 'object') {
+                        customColors = backup.customColors;
+                        saveCustomColors(customColors);
+                    }
+                    render();
+                    alert('数据恢复成功！');
+                } catch (e) {
+                    alert('文件解析失败，请确保是有效的备份文件。');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ================================================================
+        // 13. OCR（保持不变）
+        // ================================================================
+        let parsedItems = [];
+        let ocrOpen = true;
+
+        function toggleOcr() {
+            const body = document.getElementById('ocrBody');
+            const btn = document.getElementById('ocrToggleBtn');
+            const status = document.getElementById('ocrStatus');
+            ocrOpen = !ocrOpen;
+            if (ocrOpen) {
+                body.classList.add('open');
+                btn.textContent = '收起';
+                status.textContent = '📂 已展开';
+                status.classList.add('active');
+            } else {
+                body.classList.remove('open');
+                btn.textContent = '展开';
+                status.textContent = '⚡ 点击展开';
+                status.classList.remove('active');
             }
         }
-        const fallback = line.match(/([A-Za-z]\d+).*?(\d+)/);
-        if (fallback) {
-            tempList.push({ code: fallback[1].toUpperCase(), qty: parseInt(fallback[2]) });
+
+        document.getElementById('ocrImageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('ocrPreview').src = ev.target.result;
+                document.getElementById('ocrPreview').style.display = 'block';
+                document.getElementById('ocrStatus').textContent = '识别中...';
+                (async () => {
+                    try {
+                        const result = await Tesseract.recognize(ev.target.result, 'eng', {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    document.getElementById('ocrStatus').textContent = `识别中 ${Math.round(m.progress * 100)}%`;
+                                }
+                            }
+                        });
+                        const text = result.data.text;
+                        document.getElementById('ocrText').value = text;
+                        document.getElementById('ocrStatus').textContent = '识别完成，点击“解析色号”';
+                        parseOcrText();
+                    } catch (err) {
+                        alert('OCR识别失败：' + err.message);
+                        document.getElementById('ocrStatus').textContent = '识别失败';
+                    }
+                })();
+            };
+            reader.readAsDataURL(file);
+            this.value = '';
+        });
+
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData && e.clipboardData.items;
+            if (!items) return;
+            let imageFile = null;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    imageFile = items[i].getAsFile();
+                    break;
+                }
+            }
+            if (imageFile) {
+                const target = e.target;
+                if (target.closest && (target.closest('#ocrBody') || target.closest('#gridBody'))) {
+                    e.preventDefault();
+                    if (!ocrOpen) toggleOcr();
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        document.getElementById('ocrPreview').src = ev.target.result;
+                        document.getElementById('ocrPreview').style.display = 'block';
+                        document.getElementById('ocrStatus').textContent = '识别中...';
+                        (async () => {
+                            try {
+                                const result = await Tesseract.recognize(ev.target.result, 'eng', {
+                                    logger: m => {
+                                        if (m.status === 'recognizing text') {
+                                            document.getElementById('ocrStatus').textContent = `识别中 ${Math.round(m.progress * 100)}%`;
+                                        }
+                                    }
+                                });
+                                const text = result.data.text;
+                                document.getElementById('ocrText').value = text;
+                                document.getElementById('ocrStatus').textContent = '识别完成，点击“解析色号”';
+                                parseOcrText();
+                            } catch (err) {
+                                alert('OCR识别失败：' + err.message);
+                                document.getElementById('ocrStatus').textContent = '识别失败';
+                            }
+                        })();
+                    };
+                    reader.readAsDataURL(imageFile);
+                }
+            }
+        });
+
+        function parseOcrText() {
+            const text = document.getElementById('ocrText').value;
+            const pattern = /([A-Za-z]\d+)\s*[\(（]?\s*(\d+)\s*[\)）]?/g;
+            let matches = [];
+            let m;
+            while ((m = pattern.exec(text)) !== null) {
+                matches.push({ code: m[1].toUpperCase(), qty: parseInt(m[2]) });
+            }
+            if (matches.length === 0) {
+                alert('未识别出任何色号，请检查文字或手动添加。');
+                parsedItems = [];
+                showParsedList();
+                return;
+            }
+            const codeMap = new Map();
+            for (const item of matches) {
+                if (codeMap.has(item.code)) {
+                    codeMap.set(item.code, codeMap.get(item.code) + item.qty);
+                } else {
+                    codeMap.set(item.code, item.qty);
+                }
+            }
+            parsedItems = Array.from(codeMap.entries()).map(([code, qty]) => ({ code, qty }));
+            const validCodes = new Set(colorCodes);
+            const invalid = parsedItems.filter(item => !validCodes.has(item.code));
+            if (invalid.length > 0) {
+                alert(`识别到 ${invalid.length} 个无效色号（如 ${invalid[0].code}），请手动删除或修正。`);
+            }
+            showParsedList();
         }
-    }
 
-    if (tempList.length === 0) {
-        alert("无法解析任何有效数据！请确保每行格式为：色号 数量 或 色号(数量)");
-        return;
-    }
+        function showParsedList() {
+            const tbody = document.getElementById('parsedBody');
+            let html = '';
+            parsedItems.forEach((item, idx) => {
+                const code = item.code;
+                const hex = getColorForCode(code);
+                html += `<tr>
+                    <td class="row-index">${idx + 1}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                            <span style="display:inline-block; width:16px; height:16px; border-radius:50%; border:1px solid rgba(0,0,0,0.08); background:${hex};"></span>
+                            <input class="code-input" type="text" value="${code}" data-idx="${idx}" onchange="updateParsedItem(${idx}, 'code', this.value)" style="width:60px; padding:4px; border-radius:6px; border:1px solid #d1d9e6; font-size:14px; text-align:center;">
+                        </div>
+                    </td>
+                    <td><input type="number" min="0" step="1" value="${item.qty}" data-idx="${idx}" onchange="updateParsedItem(${idx}, 'qty', parseInt(this.value)||0)" style="width:70px; padding:4px; border-radius:6px; border:1px solid #d1d9e6; font-size:14px; text-align:center;"></td>
+                    <td><button class="btn-delete-row" onclick="deleteParsedRow(${idx})" title="删除此行">✕</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            document.getElementById('parsedList').style.display = 'block';
+            if (!ocrOpen) toggleOcr();
+        }
 
-    parsedItems = parsedItems.concat(tempList);
-    showParsedList();
-    checkParsedDuplicate(true);
-}
+        function updateParsedItem(idx, field, value) {
+            if (field === 'code') {
+                parsedItems[idx].code = value.toUpperCase();
+                checkParsedDuplicate(true);
+            } else if (field === 'qty') {
+                parsedItems[idx].qty = Math.max(0, parseInt(value) || 0);
+            }
+        }
 
-// ================================================================
-// 16. 初始化
-// ================================================================
-render();
-if (!localStorage.getItem(STORAGE_KEY)) saveInventory(inventory);
-if (!localStorage.getItem(LIST_KEY)) saveColorList(colorCodes);
-console.log('🧩 拼豆 含透色系版已加载！');
-ocrOpen = true;
-document.getElementById('ocrStatus').textContent = '📂 已展开';
-document.getElementById('ocrToggleBtn').textContent = '收起';
-</script>
+        function deleteParsedRow(idx) {
+            if (!confirm(`确定删除第 ${idx + 1} 行吗？`)) return;
+            parsedItems.splice(idx, 1);
+            showParsedList();
+        }
+
+        function addParsedRow() {
+            parsedItems.push({ code: '', qty: 0 });
+            showParsedList();
+            const inputs = document.querySelectorAll('#parsedBody .code-input');
+            if (inputs.length > 0) {
+                const last = inputs[inputs.length - 1];
+                last.focus();
+                last.select();
+            }
+            checkParsedDuplicate(true);
+        }
+
+        function clearOcr() {
+            document.getElementById('ocrText').value = '';
+            document.getElementById('ocrPreview').style.display = 'none';
+            document.getElementById('ocrPreview').src = '';
+            document.getElementById('parsedList').style.display = 'none';
+            document.getElementById('ocrStatus').textContent = '📂 已展开';
+            document.getElementById('ocrStatus').classList.add('active');
+            parsedItems = [];
+            if (!ocrOpen) toggleOcr();
+        }
+
+        function checkParsedDuplicate(showAlert = true) {
+            const codeMap = new Map();
+            const dupList = [];
+            parsedItems.forEach(item => {
+                const c = (item.code || "").trim().toUpperCase();
+                if (!c) return;
+                if (codeMap.has(c)) dupList.push(c);
+                else codeMap.set(c, true);
+            });
+            const uniqDup = [...new Set(dupList)];
+            if (uniqDup.length > 0 && showAlert) {
+                alert(`⚠️重复色号：${uniqDup.join(', ')}，请处理后再批量执行`);
+            }
+            return uniqDup.length > 0;
+        }
+
+        function applyOcrBatch(mode) {
+            if (parsedItems.length === 0) {
+                alert('列表为空，请先上传图片并解析，或手动新增行。');
+                return;
+            }
+            if (checkParsedDuplicate(true)) return;
+            const empty = parsedItems.filter(item => item.code.trim() === '');
+            if (empty.length > 0) {
+                alert(`存在 ${empty.length} 个空色号，请填写完整后再执行。`);
+                return;
+            }
+            const unknown = parsedItems.filter(item => !colorCodes.includes(item.code));
+            if (unknown.length > 0) {
+                const codes = unknown.map(i => i.code).join(', ');
+                if (!confirm(`检测到以下色号不在列表中：${codes}\n是否自动添加这些色号？`)) {
+                    parsedItems = parsedItems.filter(item => colorCodes.includes(item.code));
+                    if (parsedItems.length === 0) {
+                        alert('没有可操作的色号。');
+                        return;
+                    }
+                } else {
+                    const newList = [...colorCodes];
+                    for (const item of unknown) {
+                        if (!newList.includes(item.code)) newList.push(item.code);
+                    }
+                    updateColorList(newList);
+                }
+            }
+            const action = mode === 'subtract' ? '扣除' : '增加';
+            if (!confirm(`确认对 ${parsedItems.length} 个色号执行“${action}”操作吗？\n（数量将${mode === 'subtract' ? '从库存中减去' : '增加到库存中'}）`)) return;
+            let updatedCount = 0;
+            for (const item of parsedItems) {
+                const code = item.code;
+                const qty = item.qty;
+                if (qty === 0) continue;
+                if (!inventory[code]) inventory[code] = { qty: '' };
+                let current = parseFloat(inventory[code].qty) || 0;
+                let newQty;
+                if (mode === 'subtract') {
+                    newQty = current - qty;
+                    if (newQty < 0) newQty = 0;
+                } else {
+                    newQty = current + qty;
+                }
+                inventory[code].qty = String(Math.floor(newQty));
+                updatedCount++;
+            }
+            saveInventory(inventory);
+            render();
+            alert(`${action}完成！更新了 ${updatedCount} 个色号。`);
+            clearOcr();
+        }
+
+        function parseTextToParsed() {
+            const textDom = document.getElementById('ocrText');
+            if (!textDom) {
+                alert("错误：没有找到文本输入框");
+                return;
+            }
+            const text = textDom.value;
+            if (!text.trim()) {
+                alert("请先粘贴文本 / OCR识别图片到文本框");
+                return;
+            }
+            const lines = text.split('\n');
+            const tempList = [];
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                let match = line.match(/([A-Za-z]\d+)\s*[\(（]?\s*(\d+)\s*[\)）]?/);
+                if (match) {
+                    tempList.push({ code: match[1].toUpperCase(), qty: parseInt(match[2]) });
+                    continue;
+                }
+                const parts = line.split(/[\s\t:：]+/);
+                if (parts.length >= 2) {
+                    const code = parts[0].trim().toUpperCase();
+                    const qty = parseInt(parts[1]);
+                    if (code && !isNaN(qty) && qty > 0) {
+                        tempList.push({ code, qty });
+                        continue;
+                    }
+                }
+                const fallback = line.match(/([A-Za-z]\d+).*?(\d+)/);
+                if (fallback) {
+                    tempList.push({ code: fallback[1].toUpperCase(), qty: parseInt(fallback[2]) });
+                }
+            }
+            if (tempList.length === 0) {
+                alert("无法解析任何有效数据！请确保每行格式为：色号 数量 或 色号(数量)");
+                return;
+            }
+            parsedItems = parsedItems.concat(tempList);
+            showParsedList();
+            checkParsedDuplicate(true);
+        }
+
+        // ================================================================
+        // 14. ★★★ 图纸生成（含框选 + 批量选择 + 筛选）★★★
+        // ================================================================
+        let gridData = [];
+        let gridWidth = 0,
+            gridHeight = 0;
+        let gridImageData = null;
+        let cropRect = null;
+        let cropMode = false;
+        let batchSelectMode = false;
+        let selectedCells = [];
+
+        function toggleGridPanel() {
+            const body = document.getElementById('gridBody');
+            const btn = document.getElementById('gridToggleBtn');
+            const status = document.getElementById('gridStatus');
+            const isOpen = body.classList.toggle('open');
+            btn.textContent = isOpen ? '收起' : '展开';
+            status.textContent = isOpen ? '📂 已展开' : '⚡ 点击展开';
+            if (isOpen) status.classList.add('active');
+            else status.classList.remove('active');
+        }
+
+        function loadGridImage(img) {
+            gridImageData = img;
+            const wrapper = document.getElementById('cropContainerWrapper');
+            wrapper.style.display = 'block';
+            const imgEl = document.getElementById('cropImage');
+            imgEl.src = img.src;
+            const canvas = document.getElementById('cropCanvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            cropRect = null;
+            drawCropCanvas();
+            document.getElementById('cropHint').classList.remove('hidden');
+        }
+
+        function drawCropCanvas() {
+            const canvas = document.getElementById('cropCanvas');
+            const ctx = canvas.getContext('2d');
+            const img = document.getElementById('cropImage');
+            if (!img.complete || !img.naturalWidth) {
+                setTimeout(drawCropCanvas, 100);
+                return;
+            }
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (cropRect) {
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(cropRect.x, cropRect.y, cropRect.width, cropRect.height);
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(cropRect.x, cropRect.y, cropRect.width, cropRect.height);
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px sans-serif';
+                ctx.fillText(`${Math.round(cropRect.width)}×${Math.round(cropRect.height)}`, cropRect.x + 4, cropRect.y + 20);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        let isDragging = false;
+        let startX = 0,
+            startY = 0;
+
+        function initCropEvents() {
+            const canvas = document.getElementById('cropCanvas');
+            canvas.addEventListener('mousedown', onCropStart);
+            window.addEventListener('mousemove', onCropMove);
+            window.addEventListener('mouseup', onCropEnd);
+            canvas.addEventListener('touchstart', onCropStartTouch, { passive: false });
+            window.addEventListener('touchmove', onCropMoveTouch, { passive: false });
+            window.addEventListener('touchend', onCropEndTouch, { passive: false });
+        }
+
+        function getCanvasCoords(e) {
+            const rect = document.getElementById('cropCanvas').getBoundingClientRect();
+            const scaleX = document.getElementById('cropCanvas').width / rect.width;
+            const scaleY = document.getElementById('cropCanvas').height / rect.height;
+            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+        }
+
+        function onCropStart(e) {
+            if (!cropMode) return;
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            startX = pos.x;
+            startY = pos.y;
+            isDragging = true;
+            cropRect = { x: startX, y: startY, width: 0, height: 0 };
+            drawCropCanvas();
+        }
+
+        function onCropMove(e) {
+            if (!isDragging || !cropMode) return;
+            e.preventDefault();
+            const pos = getCanvasCoords(e);
+            const x = Math.min(startX, pos.x);
+            const y = Math.min(startY, pos.y);
+            const w = Math.abs(pos.x - startX);
+            const h = Math.abs(pos.y - startY);
+            cropRect = { x, y, width: w, height: h };
+            drawCropCanvas();
+        }
+
+        function onCropEnd(e) {
+            if (isDragging && cropMode) {
+                if (cropRect && (cropRect.width < 10 || cropRect.height < 10)) {
+                    cropRect = null;
+                }
+                drawCropCanvas();
+                if (cropRect) document.getElementById('cropHint').classList.add('hidden');
+                else document.getElementById('cropHint').classList.remove('hidden');
+                isDragging = false;
+            }
+        }
+
+        function onCropStartTouch(e) {
+            const touch = e.touches[0];
+            if (!touch) return;
+            const mouseEvent = new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY });
+            onCropStart(mouseEvent);
+        }
+        function onCropMoveTouch(e) {
+            const touch = e.touches[0];
+            if (!touch) return;
+            const mouseEvent = new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY });
+            onCropMove(mouseEvent);
+        }
+        function onCropEndTouch(e) {
+            onCropEnd(e);
+        }
+
+        function toggleCropMode() {
+            if (!gridImageData) { alert('请先上传图片！'); return; }
+            cropMode = !cropMode;
+            if (cropMode) {
+                document.getElementById('cropHint').classList.remove('hidden');
+                if (cropRect) document.getElementById('cropHint').classList.add('hidden');
+            } else {
+                document.getElementById('cropHint').classList.add('hidden');
+            }
+            const btn = document.querySelector('.grid-collapsible .btn-warning');
+            if (btn) btn.textContent = cropMode ? '✅ 框选中' : '✂️ 框选';
+            drawCropCanvas();
+        }
+
+        function clearCrop() {
+            cropRect = null;
+            cropMode = false;
+            document.getElementById('cropHint').classList.remove('hidden');
+            const btn = document.querySelector('.grid-collapsible .btn-warning');
+            if (btn) btn.textContent = '✂️ 框选';
+            drawCropCanvas();
+        }
+
+        document.getElementById('gridImageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = new Image();
+                img.onload = function() {
+                    loadGridImage(img);
+                    alert('图片已上传！可点击“框选”选择主体区域。');
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+            this.value = '';
+        });
+
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData && e.clipboardData.items;
+            if (!items) return;
+            let imageFile = null;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    imageFile = items[i].getAsFile();
+                    break;
+                }
+            }
+            if (imageFile) {
+                const target = e.target;
+                if (target.closest && target.closest('#gridBody')) {
+                    e.preventDefault();
+                    const body = document.getElementById('gridBody');
+                    if (!body.classList.contains('open')) toggleGridPanel();
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const img = new Image();
+                        img.onload = function() {
+                            loadGridImage(img);
+                            alert('图片已粘贴！可点击“框选”选择主体区域。');
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(imageFile);
+                }
+            }
+        });
+
+        function generateGrid() {
+            if (!gridImageData) { alert('请先上传或粘贴一张图片！'); return; }
+            const w = parseInt(document.getElementById('gridWidth').value) || 32;
+            const h = parseInt(document.getElementById('gridHeight').value) || 32;
+            if (w < 1 || h < 1 || w > 200 || h > 200) {
+                alert('格数请设置在 1～200 之间。');
+                return;
+            }
+            gridWidth = w;
+            gridHeight = h;
+
+            const canvas = document.createElement('canvas');
+            let srcX = 0,
+                srcY = 0,
+                srcW = gridImageData.width,
+                srcH = gridImageData.height;
+            if (cropRect) {
+                srcX = cropRect.x;
+                srcY = cropRect.y;
+                srcW = cropRect.width;
+                srcH = cropRect.height;
+                srcX = Math.max(0, srcX);
+                srcY = Math.max(0, srcY);
+                srcW = Math.min(srcW, gridImageData.width - srcX);
+                srcH = Math.min(srcH, gridImageData.height - srcY);
+                if (srcW < 1 || srcH < 1) { alert('框选区域无效，请重新框选。'); return; }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(gridImageData, srcX, srcY, srcW, srcH, 0, 0, w, h);
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const data = imageData.data;
+
+            const palette = [];
+            for (const code of colorCodes) {
+                const hex = getColorForCode(code);
+                const rgb = hexToRgb(hex);
+                if (rgb) palette.push({ code, r: rgb.r, g: rgb.g, b: rgb.b });
+            }
+
+            gridData = [];
+            selectedCells = [];
+            for (let y = 0; y < h; y++) {
+                const row = [];
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const r = data[idx],
+                        g = data[idx + 1],
+                        b = data[idx + 2];
+                    let minDist = Infinity,
+                        bestCode = null;
+                    for (const p of palette) {
+                        const dr = r - p.r,
+                            dg = g - p.g,
+                            db = b - p.b;
+                        const dist = dr * dr + dg * dg + db * db;
+                        if (dist < minDist) { minDist = dist;
+                            bestCode = p.code; }
+                    }
+                    const hex = getColorForCode(bestCode);
+                    row.push({ code: bestCode, hex: hex });
+                }
+                gridData.push(row);
+            }
+            renderGrid();
+            renderGridStats();
+            if (batchSelectMode) toggleBatchSelectMode();
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'grid-wrapper';
+            for (let y = 0; y < gridData.length; y++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'grid-row';
+                for (let x = 0; x < gridData[y].length; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    const isSelected = selectedCells.some(s => s.x === x && s.y === y);
+                    if (isSelected) cell.classList.add('selected');
+                    cell.style.background = gridData[y][x].hex;
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.addEventListener('click', function(e) {
+                        handleCellClick(x, y, e);
+                    });
+                    rowDiv.appendChild(cell);
+                }
+                wrapper.appendChild(rowDiv);
+            }
+            container.appendChild(wrapper);
+            document.getElementById('gridPreviewContainer').style.display = 'block';
+            updateBatchModifyBtn();
+        }
+
+        function renderGridStats() {
+            const statsDiv = document.getElementById('gridStats');
+            const countMap = {};
+            for (const row of gridData) {
+                for (const cell of row) {
+                    const code = cell.code;
+                    if (countMap[code]) countMap[code]++;
+                    else countMap[code] = 1;
+                }
+            }
+            const sorted = Object.entries(countMap).sort((a, b) => b[1] - a[1]);
+            let html = '<span style="font-weight:600;">使用色号统计：</span>';
+            for (const [code, count] of sorted) {
+                const hex = getColorForCode(code);
+                html += `<span class="stat-item"><span class="dot" style="background:${hex};"></span> ${code}: ${count}</span>`;
+            }
+            statsDiv.innerHTML = html;
+        }
+
+        function handleCellClick(x, y, event) {
+            if (batchSelectMode) {
+                const index = selectedCells.findIndex(s => s.x === x && s.y === y);
+                if (index !== -1) {
+                    selectedCells.splice(index, 1);
+                } else {
+                    selectedCells.push({ x, y });
+                }
+                renderGrid();
+                updateBatchModifyBtn();
+            } else {
+                openGridEditModal(x, y);
+            }
+        }
+
+        function updateBatchModifyBtn() {
+            const btn = document.getElementById('batchModifyBtn');
+            if (selectedCells.length > 0) {
+                btn.style.display = 'inline-flex';
+                btn.textContent = `📦 批量修改 (${selectedCells.length})`;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        function toggleBatchSelectMode() {
+            batchSelectMode = !batchSelectMode;
+            const btn = document.getElementById('batchSelectBtn');
+            if (batchSelectMode) {
+                btn.textContent = '✅ 选择中';
+                btn.style.background = '#10b981';
+                btn.style.color = 'white';
+                selectedCells = [];
+                renderGrid();
+                updateBatchModifyBtn();
+                alert('点击格子选择/取消选择，然后点击“批量修改”更改色号。');
+            } else {
+                btn.textContent = '🔲 批量修改色号';
+                btn.style.background = '#3b82f6';
+                btn.style.color = 'white';
+                selectedCells = [];
+                renderGrid();
+                updateBatchModifyBtn();
+            }
+        }
+
+        // ★★★ 单个格子编辑（带筛选下拉）★★★
+        let editingCellX = null,
+            editingCellY = null;
+
+        function openGridEditModal(x, y) {
+            if (batchSelectMode) return;
+            const cell = gridData[y][x];
+            editingCellX = x;
+            editingCellY = y;
+            const currentCode = cell.code || '';
+            const currentHex = cell.hex || '#CCCCCC';
+
+            const filterInput = document.getElementById('gridEditFilterInput');
+            const filterList = document.getElementById('filterList');
+            filterInput.value = currentCode;
+            filterInput.dataset.selected = currentCode;
+            populateFilterList(filterInput, filterList, currentCode);
+
+            document.getElementById('gridEditColorPicker').value = currentHex;
+            document.getElementById('gridEditTitle').textContent = `🎨 编辑颜色 - (${x+1}, ${y+1})`;
+
+            document.getElementById('gridEditModal').classList.add('active');
+
+            filterInput.oninput = function() {
+                const val = this.value.toUpperCase();
+                populateFilterList(this, filterList, val);
+            };
+            filterInput.onfocus = function() {
+                filterList.classList.add('show');
+            };
+            filterInput.onblur = function() {
+                setTimeout(() => { filterList.classList.remove('show'); }, 200);
+            };
+
+            document.getElementById('gridEditColorPicker').oninput = function() {
+                const hex = this.value;
+                const palette = [];
+                for (const code of colorCodes) {
+                    const h = getColorForCode(code);
+                    const rgb = hexToRgb(h);
+                    if (rgb) palette.push({ code, r: rgb.r, g: rgb.g, b: rgb.b });
+                }
+                const rgb = hexToRgb(hex);
+                if (rgb) {
+                    let minDist = Infinity,
+                        bestCode = null;
+                    for (const p of palette) {
+                        const dr = rgb.r - p.r,
+                            dg = rgb.g - p.g,
+                            db = rgb.b - p.b;
+                        const dist = dr * dr + dg * dg + db * db;
+                        if (dist < minDist) { minDist = dist;
+                            bestCode = p.code; }
+                    }
+                    if (bestCode) {
+                        filterInput.value = bestCode;
+                        filterInput.dataset.selected = bestCode;
+                        populateFilterList(filterInput, filterList, bestCode);
+                    }
+                }
+            };
+        }
+
+        function populateFilterList(input, list, filterValue) {
+            const val = filterValue ? filterValue.toUpperCase() : '';
+            list.innerHTML = '';
+            let matched = false;
+            for (const code of colorCodes) {
+                if (code.toUpperCase().includes(val)) {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    const hex = getColorForCode(code);
+                    div.innerHTML = `<span class="dot" style="background:${hex};"></span> ${code}`;
+                    div.onmousedown = function(e) {
+                        e.preventDefault();
+                        input.value = code;
+                        input.dataset.selected = code;
+                        list.classList.remove('show');
+                        const colorPicker = document.getElementById('gridEditColorPicker');
+                        colorPicker.value = getColorForCode(code);
+                    };
+                    list.appendChild(div);
+                    matched = true;
+                }
+            }
+            if (!matched) {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.textContent = '无匹配色号';
+                div.style.color = '#94a3b8';
+                div.style.cursor = 'default';
+                list.appendChild(div);
+            }
+            list.classList.add('show');
+        }
+
+        function closeGridEditModal() {
+            document.getElementById('gridEditModal').classList.remove('active');
+            editingCellX = null;
+            editingCellY = null;
+        }
+
+        function confirmGridEdit() {
+            if (editingCellX === null || editingCellY === null) return;
+            const x = editingCellX,
+                y = editingCellY;
+            const filterInput = document.getElementById('gridEditFilterInput');
+            const code = filterInput.dataset.selected || filterInput.value.toUpperCase();
+            if (!colorCodes.includes(code)) {
+                alert('色号无效，请从列表中选择。');
+                return;
+            }
+            const hex = getColorForCode(code);
+            gridData[y][x].code = code;
+            gridData[y][x].hex = hex;
+            renderGrid();
+            renderGridStats();
+            closeGridEditModal();
+        }
+
+        // ★★★ 批量修改色号 ★★★
+        function openBatchGridEditModal() {
+            if (selectedCells.length === 0) {
+                alert('请先选择至少一个格子。');
+                return;
+            }
+            document.getElementById('batchSelectedCount').textContent = selectedCells.length;
+            const filterInput = document.getElementById('batchFilterInput');
+            const filterList = document.getElementById('batchFilterList');
+            filterInput.value = '';
+            filterInput.dataset.selected = '';
+            populateFilterList(filterInput, filterList, '');
+            filterInput.oninput = function() {
+                const val = this.value.toUpperCase();
+                populateFilterList(this, filterList, val);
+            };
+            filterInput.onfocus = function() {
+                filterList.classList.add('show');
+            };
+            filterInput.onblur = function() {
+                setTimeout(() => { filterList.classList.remove('show'); }, 200);
+            };
+            document.getElementById('batchGridEditModal').classList.add('active');
+        }
+
+        function closeBatchGridEditModal() {
+            document.getElementById('batchGridEditModal').classList.remove('active');
+        }
+
+        function confirmBatchGridEdit() {
+            const filterInput = document.getElementById('batchFilterInput');
+            const code = filterInput.dataset.selected || filterInput.value.toUpperCase();
+            if (!colorCodes.includes(code)) {
+                alert('色号无效，请从列表中选择。');
+                return;
+            }
+            const hex = getColorForCode(code);
+            for (const cell of selectedCells) {
+                const x = cell.x,
+                    y = cell.y;
+                gridData[y][x].code = code;
+                gridData[y][x].hex = hex;
+            }
+            selectedCells = [];
+            renderGrid();
+            renderGridStats();
+            closeBatchGridEditModal();
+            updateBatchModifyBtn();
+            if (batchSelectMode) toggleBatchSelectMode();
+        }
+
+        // 导出、扣除、清空（保持不变）
+        function exportGridImage() {
+            if (!gridData || gridData.length === 0) { alert('请先生成图纸！'); return; }
+            const cellSize = 20;
+            const w = gridData[0].length,
+                h = gridData.length;
+            const canvas = document.createElement('canvas');
+            canvas.width = w * cellSize;
+            canvas.height = h * cellSize;
+            const ctx = canvas.getContext('2d');
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    ctx.fillStyle = gridData[y][x].hex;
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    ctx.strokeStyle = '#ddd';
+                    ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                }
+            }
+            const link = document.createElement('a');
+            link.download = '拼豆图纸.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function exportGridColors() {
+            if (!gridData || gridData.length === 0) { alert('请先生成图纸！'); return; }
+            const countMap = {};
+            for (const row of gridData) {
+                for (const cell of row) {
+                    const code = cell.code;
+                    if (countMap[code]) countMap[code]++;
+                    else countMap[code] = 1;
+                }
+            }
+            let csv = '\uFEFF色号,使用次数\n';
+            for (const [code, count] of Object.entries(countMap)) {
+                csv += code + ',' + count + '\n';
+            }
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '拼豆图纸色号列表.csv';
+            link.click();
+        }
+
+        function deductGridInventory() {
+            if (!gridData || gridData.length === 0) {
+                alert('请先生成图纸！');
+                return;
+            }
+            const countMap = {};
+            for (const row of gridData) {
+                for (const cell of row) {
+                    const code = cell.code;
+                    if (countMap[code]) countMap[code]++;
+                    else countMap[code] = 1;
+                }
+            }
+            let insufficient = [];
+            for (const [code, count] of Object.entries(countMap)) {
+                const currentQty = parseInt(inventory[code]?.qty) || 0;
+                if (currentQty < count) {
+                    insufficient.push({ code, need: count, have: currentQty });
+                }
+            }
+            if (insufficient.length > 0) {
+                let msg = '以下色号库存不足：\n';
+                for (const item of insufficient) {
+                    msg += `  ${item.code}: 需要 ${item.need}，库存 ${item.have}\n`;
+                }
+                alert(msg);
+                return;
+            }
+            let confirmMsg = '确认从库存中扣除以下色号及数量？\n';
+            for (const [code, count] of Object.entries(countMap)) {
+                confirmMsg += `  ${code}: ${count}\n`;
+            }
+            if (!confirm(confirmMsg)) return;
+
+            for (const [code, count] of Object.entries(countMap)) {
+                const currentQty = parseInt(inventory[code]?.qty) || 0;
+                inventory[code].qty = String(currentQty - count);
+            }
+            saveInventory(inventory);
+            render();
+            alert('扣除完成！');
+        }
+
+        function clearGrid() {
+            gridData = [];
+            gridImageData = null;
+            cropRect = null;
+            cropMode = false;
+            selectedCells = [];
+            batchSelectMode = false;
+            document.getElementById('gridContainer').innerHTML = '';
+            document.getElementById('gridStats').innerHTML = '';
+            document.getElementById('gridPreviewContainer').style.display = 'none';
+            document.getElementById('gridImageUpload').value = '';
+            document.getElementById('cropContainerWrapper').style.display = 'none';
+            document.getElementById('cropImage').src = '';
+            const btn = document.querySelector('.grid-collapsible .btn-warning');
+            if (btn) btn.textContent = '✂️ 框选';
+            const batchBtn = document.getElementById('batchSelectBtn');
+            batchBtn.textContent = '🔲 批量选择';
+            batchBtn.style.background = '#3b82f6';
+            batchBtn.style.color = 'white';
+            document.getElementById('batchModifyBtn').style.display = 'none';
+        }
+
+        window.addEventListener('load', function() {
+            initCropEvents();
+        });
+
+        // ================================================================
+        // 15. 初始化
+        // ================================================================
+        render();
+        if (!localStorage.getItem(STORAGE_KEY)) saveInventory(inventory);
+        if (!localStorage.getItem(LIST_KEY)) saveColorList(colorCodes);
+
+        document.getElementById('ocrStatus').classList.add('active');
+        console.log('🧩 拼豆 布局调整版已加载！');
+    </script>
 </body>
 </html>
