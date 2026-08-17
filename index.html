@@ -240,14 +240,18 @@
             align-items: center;
         }
         .stats span {
-            background: #dbeafe;
-            color: #1d4ed8;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-        }
+			background: #dbeafe;
+			color: #1d4ed8;
+			padding: 4px 12px;
+			border-radius: 30px;
+			font-weight: 600;
+			font-size: 14px;
+			white-space: nowrap;
+			display: inline-flex;
+			align-items: center;
+			min-height: 28px;
+			line-height: 1.2;
+		}
         .stats .low-stock-badge {
             background: #fef3c7;
             color: #d97706;
@@ -259,6 +263,15 @@
             transition: 0.2s;
             white-space: nowrap;
         }
+		.stats .low-stock-badge,
+		.stats .threshold-setting {
+			display: inline-flex;
+			align-items: center;
+			min-height: 28px;
+			padding: 4px 12px;
+			border-radius: 30px;
+			font-size: 14px;
+		}
         .stats .low-stock-badge:hover { background: #fde68a; }
         .stats .low-stock-badge.warning { background: #fee2e2; color: #dc2626; }
         .stats .threshold-setting {
