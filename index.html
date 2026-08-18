@@ -17,20 +17,20 @@
             justify-content: center;
             font-size: 16px;
         }
-		#restoreFileInput {
-			display: none !important;
-			width: 0 !important;
-			height: 0 !important;
-			opacity: 0 !important;
-			position: absolute !important;
-			pointer-events: none !important;
-		}
-		#total-consumed:focus {
-			outline: 2px solid #be185d;
-			outline-offset: 2px;
-			border-radius: 4px;
-			background: #fdf2f8;
-		}
+        #restoreFileInput {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0 !important;
+            position: absolute !important;
+            pointer-events: none !important;
+        }
+        #total-consumed:focus {
+            outline: 2px solid #be185d;
+            outline-offset: 2px;
+            border-radius: 4px;
+            background: #fdf2f8;
+        }
         .container {
             max-width: 1200px;
             width: 100%;
@@ -102,7 +102,6 @@
         }
         .collapsible-body.open { display: flex; }
 
-        /* 按钮、表单、表格等样式（与之前一致，精简但完整） */
         .btn {
             padding: 10px 20px;
             border-radius: 40px;
@@ -236,22 +235,22 @@
             font-weight: 500;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 20px;
             align-items: center;
         }
         .stats span {
-			background: #dbeafe;
-			color: #1d4ed8;
-			padding: 4px 12px;
-			border-radius: 30px;
-			font-weight: 600;
-			font-size: 14px;
-			white-space: nowrap;
-			display: inline-flex;
-			align-items: center;
-			min-height: 28px;
-			line-height: 1.2;
-		}
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            line-height: 1.2;
+        }
         .stats .low-stock-badge {
             background: #fef3c7;
             color: #d97706;
@@ -263,15 +262,15 @@
             transition: 0.2s;
             white-space: nowrap;
         }
-		.stats .low-stock-badge,
-		.stats .threshold-setting {
-			display: inline-flex;
-			align-items: center;
-			min-height: 28px;
-			padding: 4px 12px;
-			border-radius: 30px;
-			font-size: 14px;
-		}
+        .stats .low-stock-badge,
+        .stats .threshold-setting {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
         .stats .low-stock-badge:hover { background: #fde68a; }
         .stats .low-stock-badge.warning { background: #fee2e2; color: #dc2626; }
         .stats .threshold-setting {
@@ -328,7 +327,7 @@
             border-collapse: collapse;
             font-size: 15px;
             table-layout: fixed;
-            min-width: 480px;
+            min-width: 550px; /* 增加宽度以容纳新增列 */
         }
         thead { position: sticky; top: 0; z-index: 10; }
         th {
@@ -357,11 +356,12 @@
             vertical-align: middle;
         }
         .col-check { width: 5%; }
-        .col-id { width: 6%; }
-        .col-code { width: 24%; }
-        .col-qty { width: 20%; }
-        .col-restock { width: 20%; }
-        .col-delete { width: 15%; }
+        .col-id { width: 5%; }
+        .col-code { width: 20%; }
+        .col-qty { width: 15%; }
+        .col-restock { width: 15%; }
+        .col-total { width: 15%; }   /* 新增库存总数列 */
+        .col-delete { width: 10%; }
 
         .code-cell {
             display: flex;
@@ -410,6 +410,23 @@
         .col-restock input::-webkit-outer-spin-button,
         .col-restock input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+        /* 新增库存总数显示样式，与数量输入框保持视觉一致但只读 */
+        .total-display {
+            display: inline-block;
+            width: 80%;
+            padding: 10px 4px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            color: #1e293b;
+            background: transparent;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            min-height: 44px;
+            line-height: 1.4;
+            cursor: default;
+        }
+
         .low-stock td { background-color: #fef3c7 !important; }
         .low-stock td:first-child { border-left: 4px solid #f59e0b; }
         .highlight-row td { background-color: #fef9c3 !important; }
@@ -434,7 +451,7 @@
             padding: 0 2px;
         }
 
-        /* 模态框样式（与之前相同，此处省略详细，但保留必要） */
+        /* 模态框样式 */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -648,11 +665,13 @@
             .stats { justify-content: center; }
             .search-box { width: 100%; }
             .btn-group { justify-content: center; }
-            .col-check { width: 10%; }
-            .col-id { width: 10%; }
-            .col-code { width: 28%; }
-            .col-qty { width: 32%; }
-            .col-delete { width: 20%; }
+            .col-check { width: 8%; }
+            .col-id { width: 8%; }
+            .col-code { width: 22%; }
+            .col-qty { width: 16%; }
+            .col-restock { width: 16%; }
+            .col-total { width: 16%; }
+            .col-delete { width: 14%; }
             .col-qty input { font-size: 15px; padding: 8px 2px; min-height: 40px; }
             .code-text { font-size: 14px; }
             .color-dot { width: 20px; height: 20px; }
@@ -666,11 +685,13 @@
             .filter-select-wrapper .filter-list .item { padding: 6px 10px; font-size: 14px; }
         }
         @media (max-width: 400px) {
-            .col-check { width: 12%; }
-            .col-id { width: 12%; }
-            .col-code { width: 24%; }
-            .col-qty { width: 30%; }
-            .col-delete { width: 22%; }
+            .col-check { width: 10%; }
+            .col-id { width: 10%; }
+            .col-code { width: 20%; }
+            .col-qty { width: 18%; }
+            .col-restock { width: 18%; }
+            .col-total { width: 18%; }
+            .col-delete { width: 16%; }
             .col-qty input { width: 90%; }
         }
         .table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -683,7 +704,7 @@
 <div class="container" id="appContainer">
     <h1>🧩 拼豆 · 库存 & 图纸 <small>管理库存 · 生成图纸</small></h1>
 
-    <!-- ===== 模态框（与之前一致） ===== -->
+    <!-- ===== 模态框 ===== -->
     <div class="modal-overlay" id="addColorModal">
         <div class="modal-box">
             <h3>➕ 添加新色号</h3>
@@ -793,33 +814,33 @@
             </div>
         </div>
     </div>
-	<!-- 已消耗编辑模态框 -->
-		<div class="modal-overlay" id="consumedEditModal">
-			<div class="modal-box">
-				<h3>✏️ 修改已消耗数量</h3>
-				<label>当前已消耗数：<span id="current-consumed-display">0</span></label>
-				<label style="margin-top:12px;">修改后已消耗数：</label>
-				<input type="number" id="consumedEditInput" min="0" step="1" value="0">
-				<div class="modal-actions">
-					<button class="btn btn-outline" onclick="closeConsumedEditModal()">取消</button>
-					<button class="btn btn-primary" onclick="confirmConsumedEdit()">确认</button>
-				</div>
-			</div>
-		</div>
+    <!-- 已消耗编辑模态框 -->
+    <div class="modal-overlay" id="consumedEditModal">
+        <div class="modal-box">
+            <h3>✏️ 修改已消耗数量</h3>
+            <label>当前已消耗数：<span id="current-consumed-display">0</span></label>
+            <label style="margin-top:12px;">修改后已消耗数：</label>
+            <input type="number" id="consumedEditInput" min="0" step="1" value="0">
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeConsumedEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmConsumedEdit()">确认</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ============================================================ -->
-    <!-- 面板1：拼豆图纸生成（默认收起） -->
+    <!-- 面板1：拼豆图纸生成 -->
     <!-- ============================================================ -->
     <div class="collapsible grid-collapsible">
         <div class="collapsible-header" onclick="toggleGridPanel()">
-            <span class="title">🧩 拼豆图纸生成</span>
+            <span class="title">🧩 图纸生成</span>
             <span class="status" id="gridStatus">⚡ 点击展开</span>
             <button class="toggle-btn" id="gridToggleBtn">展开</button>
         </div>
         <div class="collapsible-body" id="gridBody">
-		<div class="module-help" style="background:#f0f9ff; border-left:4px solid #3b82f6; padding:10px 14px; border-radius:6px; font-size:14px; color:#1e293b; margin-bottom:6px;">
-			📖 <strong>使用说明：</strong>上传/粘贴图片 → 调整格数 → 生成图纸。支持框选裁剪、抠图、批量修改色号，生成后可扣除库存或导出图片。
-		</div>
+            <div class="module-help" style="background:#f0f9ff; border-left:4px solid #3b82f6; padding:10px 14px; border-radius:6px; font-size:14px; color:#1e293b; margin-bottom:6px;">
+                📖 <strong>使用说明：</strong>上传/粘贴图片 → 调整格数 → 生成图纸。支持框选裁剪、抠图、批量修改色号，生成后可扣除库存或导出图片。
+            </div>
             <div class="inline-group">
                 <label class="file-label btn btn-purple">📷 选择图片<input type="file" id="gridImageUpload" accept="image/*"></label>
                 <button class="btn btn-outline" onclick="activateGridPaste()">📋 粘贴</button>
@@ -860,7 +881,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- 面板2：库存分析（独立，默认收起） -->
+    <!-- 面板2：库存分析 -->
     <!-- ============================================================ -->
     <div class="collapsible import-collapsible">
         <div class="collapsible-header" onclick="toggleImportPanel()">
@@ -869,9 +890,9 @@
             <button class="toggle-btn" id="importToggleBtn">展开</button>
         </div>
         <div class="collapsible-body" id="importBody">
-		<div class="module-help" style="background:#f0fdf4; border-left:4px solid #10b981; padding:10px 14px; border-radius:6px; font-size:14px; color:#1e293b; margin-bottom:6px;">
-			📖 <strong>使用说明：</strong>上传/粘贴图纸图片/手动输入图纸颜色 → 自动识别色号与数量 → 与库存对比，显示需补充的色号及明细。
-		</div>
+            <div class="module-help" style="background:#f0fdf4; border-left:4px solid #10b981; padding:10px 14px; border-radius:6px; font-size:14px; color:#1e293b; margin-bottom:6px;">
+                📖 <strong>使用说明：</strong>上传/粘贴图纸图片/手动输入图纸颜色 → 自动识别色号与数量 → 与库存对比，显示需补充的色号及明细。
+            </div>
             <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
                 <button class="btn btn-outline" onclick="document.getElementById('importImageInput').click()">选择图纸图片</button>
                 <button class="btn btn-outline" onclick="activateImportPaste()">📋 粘贴图片</button>
@@ -893,13 +914,13 @@
                         <button class="btn btn-outline" onclick="document.getElementById('manualInputArea').value=''; clearImportResult();">🗑️ 清空</button>
                     </div>
                 </div>
-				<div id="importImageResult" style="margin-top:8px; display:none; background:#f8fafc; border-radius:8px; padding:12px; border:1px solid #e2e8f0;"></div>
+                <div id="importImageResult" style="margin-top:8px; display:none; background:#f8fafc; border-radius:8px; padding:12px; border:1px solid #e2e8f0;"></div>
             </div>
         </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- 面板3：OCR 截图（默认收起） -->
+    <!-- 面板3：OCR 截图 -->
     <!-- ============================================================ -->
     <div class="collapsible ocr-collapsible">
         <div class="collapsible-header" onclick="toggleOcr()">
@@ -908,9 +929,9 @@
             <button class="toggle-btn" id="ocrToggleBtn">展开</button>
         </div>
         <div class="collapsible-body" id="ocrBody">
-		<div class="module-help" style="background:#fefce8; border-left:4px solid #f59e0b; padding:10px 14px; border-radius:6px; font-size:14px; color:#1e293b; margin-bottom:6px;">
-			📖 <strong>使用说明：</strong>上传消耗清单截图或手动输入文本 → OCR识别色号 → 批量扣除或增加库存。
-		</div>
+            <div class="module-help" style="background:#fefce8; border-left:4px solid #f59e0b; padding:10px 14px; border-radius:6px; font-size:14px; color:#1e293b; margin-bottom:6px;">
+                📖 <strong>使用说明：</strong>上传消耗清单截图或手动输入文本 → OCR识别色号 → 批量扣除或增加库存。
+            </div>
             <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
                 <label class="file-label btn btn-purple">📷 选择图片<input type="file" id="ocrImageUpload" accept="image/*"></label>
                 <button class="btn btn-outline" onclick="activateOcrPaste()">📋 粘贴</button>
@@ -963,24 +984,13 @@
     <!-- ===== 工具栏 ===== -->
     <div class="toolbar">
         <div class="stats">
-            <span>📦 剩余总数 <span id="total-count">0</span></span>
-            <!-- 新增：已消耗总数 -->
+			<span>📦 剩余库存总数： <span id="total-stock">0</span></span>
+            <span>📦 剩余数量： <span id="total-count">0</span></span>
             <span style="display:inline-flex; align-items:center; gap:4px;">
-				🔥 已消耗：<span id="total-consumed" style="font-weight:700; min-width:30px; display:inline-block; text-align:center;">0</span>
-				<button class="btn btn-sm btn-outline" onclick="openConsumedEditModal()" 
-						title="修改已消耗数量" style="padding:2px 8px; min-height:28px; font-size:13px; border-radius:6px;">
-					✏️
-				</button>
-				<button class="btn btn-sm btn-outline" onclick="resetConsumed()" 
-						title="重置已消耗为0" style="padding:2px 8px; min-height:28px; font-size:13px; border-radius:6px;">
-					↺
-				</button>
-			</span>
-				<!--<button class="btn btn-sm btn-outline" onclick="resetConsumed()" 
-						title="重置已消耗为0" style="padding:2px 8px; min-height:28px; font-size:12px;">
-					↺
-				</button>-->
-			</span>
+                🔥 已消耗：<span id="total-consumed" style="font-weight:700; min-width:30px; display:inline-block; text-align:center;">0</span>
+                <button class="btn btn-sm btn-outline" onclick="openConsumedEditModal()" title="修改已消耗数量" style="padding:2px 8px; min-height:28px; font-size:13px; border-radius:6px;">✏️</button>
+                <button class="btn btn-sm btn-outline" onclick="resetConsumed()" title="重置已消耗为0" style="padding:2px 8px; min-height:28px; font-size:13px; border-radius:6px;">↺</button>
+            </span>
             <span>📋 <span id="filled-rows">0</span>/<span id="total-colors">228</span></span>
             <span class="low-stock-badge" id="lowStockBadge" onclick="toggleLowStockFilter()">
                 ⚠️ &lt;<span id="threshold-display">100</span>：<span id="low-stock-count">0</span>种
@@ -1014,6 +1024,8 @@
                     <th class="col-code">色号</th>
                     <th class="col-qty" onclick="toggleSortBy('qty')">数量 <span class="sort-icon" id="sortIconQty">↕</span></th>
                     <th class="col-restock" onclick="toggleSortBy('restock')">补充豆库存 <span class="sort-icon" id="sortIconRestock">↕</span></th>
+                    <!-- 新增库存总数表头 -->
+                    <th class="col-total" onclick="toggleSortBy('total')">库存总数 <span class="sort-icon" id="sortIconTotal">↕</span></th>
                     <th class="col-delete">操作</th>
                 </tr>
             </thead>
@@ -1029,7 +1041,7 @@
 
 <script>
 // ================================================================
-// 完整的 JavaScript 代码（含已消耗统计）
+// 完整的 JavaScript 代码（含库存总数计算）
 // ================================================================
 
 // ---- 1. 预设色号 ----
@@ -1041,7 +1053,7 @@ for (const [series, count] of Object.entries(DEFAULT_SERIES)) {
 }
 DEFAULT_CODES.push(...EXTRA_CODES);
 
-// ---- 2. 颜色映射（与之前相同，省略完整以节省篇幅，实际已包含） ----
+// ---- 2. 颜色映射 ----
 const DEFAULT_COLOR_MAP = {
     'A1':'#F5E6CA','A2':'#FFFACD','A3':'#FFFFE0','A4':'#FFF44F','A5':'#FFD700',
     'A6':'#FFC68A','A7':'#FFA500','A8':'#FFD27A','A9':'#FFC4A3','A10':'#E8783A',
@@ -1153,19 +1165,6 @@ function saveTotalConsumed(val) {
 }
 let totalConsumed = loadTotalConsumed();
 
-// ---- 已消耗数量编辑 ----
-function saveConsumedEdit(el) {
-    let val = parseInt(el.textContent.trim());
-    if (isNaN(val) || val < 0) {
-        alert('请输入有效的非负整数');
-        el.textContent = totalConsumed;
-        return;
-    }
-    totalConsumed = val;
-    saveTotalConsumed(totalConsumed);
-    render();
-}
-
 function resetConsumed() {
     if (!confirm('确认将已消耗数量重置为 0 吗？')) return;
     totalConsumed = 0;
@@ -1251,31 +1250,58 @@ function render() {
     }
     if (sortConfig.order !== 'none') {
         displayCodes.sort((a, b) => {
-            const valA = parseFloat(inventory[a]?.[sortConfig.field]) || 0;
-            const valB = parseFloat(inventory[b]?.[sortConfig.field]) || 0;
+            let valA, valB;
+            if (sortConfig.field === 'total') {
+                const rowA = inventory[a] || { qty: '', restock: '' };
+                const rowB = inventory[b] || { qty: '', restock: '' };
+                valA = (parseFloat(rowA.qty)||0) + (parseFloat(rowA.restock)||0);
+                valB = (parseFloat(rowB.qty)||0) + (parseFloat(rowB.restock)||0);
+            } else {
+                valA = parseFloat(inventory[a]?.[sortConfig.field]) || 0;
+                valB = parseFloat(inventory[b]?.[sortConfig.field]) || 0;
+            }
             return sortConfig.order === 'asc' ? valA - valB : valB - valA;
         });
     }
-    // 更新排序图标（省略）
+    // 更新排序图标
+    document.querySelectorAll('.sort-icon').forEach(el => el.classList.remove('active'));
+    if (sortConfig.order !== 'none') {
+        const iconId = sortConfig.field === 'qty' ? 'sortIconQty' :
+                       sortConfig.field === 'restock' ? 'sortIconRestock' :
+                       sortConfig.field === 'total' ? 'sortIconTotal' : '';
+        if (iconId) {
+            const icon = document.getElementById(iconId);
+            if (icon) {
+                icon.classList.add('active');
+                icon.textContent = sortConfig.order === 'asc' ? '↑' : '↓';
+            }
+        }
+    }
+
     let html = '', filledCount = 0, lowStockCount = 0;
     for (let i = 0; i < displayCodes.length; i++) {
         const code = displayCodes[i];
         const row = inventory[code] || { qty: '', restock: '' };
         const qty = row.qty ?? '';
-        const hex = getColorForCode(code);
+        const restock = row.restock ?? '';
         const numQty = parseFloat(qty);
+        const numRestock = parseFloat(restock);
         const hasQty = qty !== '' && !isNaN(numQty);
         const isLowStock = hasQty && numQty < lowThreshold;
         if (hasQty && numQty > 0) filledCount++;
         if (isLowStock) lowStockCount++;
         const lowClass = isLowStock ? 'low-stock' : '';
         const highlightClass = (highlightedRow === code) ? 'highlight-row' : '';
+        // 计算库存总数
+        const totalQty = (numQty || 0) + (numRestock || 0);
+        const totalDisplay = totalQty > 0 ? totalQty : '';
+
         html += `<tr class="${lowClass} ${highlightClass}" data-code="${code}">
             <td class="col-check"><input type="checkbox" class="row-checkbox" data-code="${code}" onchange="updateSelectAllState()"></td>
             <td class="col-id">${i + 1}</td>
             <td class="col-code">
                 <div class="code-cell" onclick="openColorPickerForCode('${code}')">
-                    <span class="color-dot" style="background:${hex};"></span>
+                    <span class="color-dot" style="background:${getColorForCode(code)};"></span>
                     <span class="code-text">${code}</span>
                 </div>
             </td>
@@ -1284,8 +1310,11 @@ function render() {
                        onchange="updateField('${code}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" ondblclick="this.select()">
             </td>
             <td class="col-restock">
-                <input type="number" min="0" step="1" value="${row.restock ?? ''}" data-code="${code}" placeholder="0" 
+                <input type="number" min="0" step="1" value="${restock}" data-code="${code}" placeholder="0" 
                        onchange="updateRestock('${code}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" ondblclick="this.select()">
+            </td>
+            <td class="col-total">
+                <span class="total-display">${totalDisplay}</span>
             </td>
             <td class="col-delete">
                 <button class="btn-delete-row" onclick="deleteColor('${code}')" title="删除此色号">✕</button>
@@ -1299,13 +1328,23 @@ function render() {
     document.getElementById('threshold-display').textContent = lowThreshold;
     const badge = document.getElementById('lowStockBadge');
     if (lowStockCount > 0) badge.classList.add('warning'); else badge.classList.remove('warning');
-    let totalQty = 0;
-    for (const c of colorCodes) { const r = inventory[c]; if (r && r.qty) { const v = parseFloat(r.qty); if (!isNaN(v) && v > 0) totalQty += v; } }
-    document.getElementById('total-count').textContent = totalQty;
-    // 更新已消耗总数
+    let totalQtySum = 0;
+    for (const c of colorCodes) { const r = inventory[c]; if (r && r.qty) { const v = parseFloat(r.qty); if (!isNaN(v) && v > 0) totalQtySum += v; } }
+    document.getElementById('total-count').textContent = totalQtySum;
     document.getElementById('total-consumed').textContent = totalConsumed;
     window._filteredCodes = displayCodes;
     updateSelectAllState();
+	// 新增：计算总库存（数量 + 补充豆库存）
+	let totalStockSum = 0;
+	for (const c of colorCodes) {
+		const r = inventory[c];
+		if (r) {
+			const qty = parseFloat(r.qty) || 0;
+			const restock = parseFloat(r.restock) || 0;
+			totalStockSum += (qty + restock);
+		}
+	}
+	document.getElementById('total-stock').textContent = totalStockSum;
 }
 
 function toggleAllCheckboxes(checked) { document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = checked); }
@@ -1326,7 +1365,7 @@ function updateField(code, value) {
 function filterTable() { lowStockMode = false; currentFilter = document.getElementById('searchInput').value; render(); }
 function toggleLowStockFilter() { lowStockMode = !lowStockMode; if (lowStockMode) { document.getElementById('searchInput').value = '⚠️ 低库存'; currentFilter = ''; } else { document.getElementById('searchInput').value = ''; currentFilter = ''; } render(); }
 
-// ---- 10. 颜色选择（表格色块） ----
+// ---- 10. 颜色选择 ----
 let pendingColorCode = null;
 function openColorPickerForCode(code) { pendingColorCode = code; const currentColor = getColorForCode(code); document.getElementById('colorPickerInput').value = currentColor; document.getElementById('colorModalTitle').textContent = `🎨 修改 ${code} 颜色`; document.getElementById('colorModal').classList.add('active'); }
 function closeColorModal() { document.getElementById('colorModal').classList.remove('active'); pendingColorCode = null; }
@@ -1357,7 +1396,7 @@ function batchModify() {
     confirmMsg += ' 确认？';
     if (!confirm(confirmMsg)) return;
 
-    let reducedTotal = 0; // 累加减少的数量（仅当 field === 'qty' 时）
+    let reducedTotal = 0;
     for (const code of targetCodes) {
         if (!inventory[code]) inventory[code] = { qty: '', restock: '' };
         let current = parseFloat(inventory[code][field]) || 0;
@@ -1366,7 +1405,6 @@ function batchModify() {
         else if (operation === 'subtract') { 
             newVal = current - val; 
             if (newVal < 0) newVal = 0;
-            // 只有当操作的是“数量”字段时，才记录消耗
             if (field === 'qty') {
                 reducedTotal += (current - newVal);
             }
@@ -1374,7 +1412,6 @@ function batchModify() {
         else newVal = val;
         inventory[code][field] = String(Math.floor(newVal));
     }
-    // 更新已消耗总数
     if (operation === 'subtract' && field === 'qty' && reducedTotal > 0) {
         totalConsumed += reducedTotal;
         saveTotalConsumed(totalConsumed);
@@ -1387,15 +1424,17 @@ function resetAll() {
     if (!confirm('清空所有数量？')) return;
     for (const code of colorCodes) { if (!inventory[code]) inventory[code] = { qty: '', restock: '' }; inventory[code].qty = ''; inventory[code].restock = ''; }
     saveInventory(inventory);
-    // 重置时不重置消耗总数，避免误操作
     render();
 }
 function exportCSV() {
-    let csv = '\uFEFF#,色号,数量(粒),补充豆库存\n';
+    let csv = '\uFEFF#,色号,数量(粒),补充豆库存,库存总数\n';  // 新增列
     for (let i=0;i<colorCodes.length;i++) {
         const code = colorCodes[i];
         const row = inventory[code] || { qty: '', restock: '' };
-        csv += (i+1)+','+code+','+(row.qty??'')+','+(row.restock??'')+'\n';
+        const qty = parseFloat(row.qty) || 0;
+        const restock = parseFloat(row.restock) || 0;
+        const total = qty + restock;
+        csv += (i+1)+','+code+','+(row.qty??'')+','+(row.restock??'')+','+total+'\n';
     }
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -1444,7 +1483,7 @@ function restoreData(event) {
     event.target.value = '';
 }
 
-// ---- 14. OCR ----
+// ---- 14. OCR（与之前一致，省略详细以节省篇幅，但完整保留） ----
 let parsedItems = [];
 let ocrOpen = false;
 function toggleOcr() {
@@ -1555,7 +1594,7 @@ function applyOcrBatch(mode) {
     const action = mode === 'subtract' ? '扣除' : '增加';
     if (!confirm(`确认对 ${parsedItems.length} 个色号执行“${action}”操作吗？\n（数量将${mode === 'subtract' ? '从库存中减去' : '增加到库存中'}）`)) return;
     let updatedCount = 0;
-    let deductedTotal = 0; // 仅用于扣除模式
+    let deductedTotal = 0;
     for (const item of parsedItems) {
         const code = item.code, qty = item.qty;
         if (qty === 0) continue;
@@ -2108,7 +2147,7 @@ function applyServerCartoon() {
     img.src = imgElement.src;
 }
 
-// ---- 16. 抠图功能（简化） ----
+// ---- 16. 抠图功能 ----
 let mattingImageData = null, mattingMask = null, mattingTool = 'keep', mattingIsDrawing = false, mattingCanvas = null, mattingCtx = null;
 function openMattingModal() {
     if (!gridImageData) { alert('请先上传一张图片！'); return; }
@@ -2241,7 +2280,7 @@ function applyMatting() {
     img.src = canvas.toDataURL('image/png');
 }
 
-// ---- 17. 库存分析（独立） ----
+// ---- 17. 库存分析 ----
 let importImageData = null;
 function toggleImportPanel() {
     const body = document.getElementById('importBody');
@@ -2506,11 +2545,9 @@ function openConsumedEditModal() {
         document.getElementById('consumedEditInput').select();
     }, 100);
 }
-
 function closeConsumedEditModal() {
     document.getElementById('consumedEditModal').classList.remove('active');
 }
-
 function confirmConsumedEdit() {
     const input = document.getElementById('consumedEditInput');
     const val = parseInt(input.value);
@@ -2524,14 +2561,7 @@ function confirmConsumedEdit() {
     closeConsumedEditModal();
 }
 
-function resetConsumed() {
-    if (!confirm('确认将已消耗数量重置为 0 吗？')) return;
-    totalConsumed = 0;
-    saveTotalConsumed(0);
-    render();
-}
-
-// ---- 唯一全局粘贴监听器 ----
+// ---- 全局粘贴监听 ----
 document.addEventListener('paste', function(e) {
     const items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
@@ -2569,7 +2599,7 @@ window.addEventListener('load', function() {
     if (!localStorage.getItem(STORAGE_KEY)) saveInventory(inventory);
     if (!localStorage.getItem(LIST_KEY)) saveColorList(colorCodes);
     if (!localStorage.getItem(CONSUMED_KEY)) saveTotalConsumed(0);
-    console.log('🧩 拼豆 完整版已加载！已消耗统计功能已启用。');
+    console.log('🧩 拼豆 完整版已加载！库存总数已添加。');
 });
 </script>
 </body>
